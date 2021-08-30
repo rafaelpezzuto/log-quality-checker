@@ -188,6 +188,18 @@ def validate_content(path):
         results[func.__name__] = func(file_data)
 
     return results
+
+
+def run_validations(path: str, validations: list):
+    validation_results = {}
+
+    for val in validations:
+        v_results = val(path)
+        validation_results[val.__name__] = {'results': v_results}
+
+    validation_results.update(evaluate_result_validations(validation_results))
+    
+    return validation_results
 def _print_header():
     print(app_msg)
 
