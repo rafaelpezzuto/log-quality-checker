@@ -1,0 +1,2 @@
+python-magic==0.4.24
+six==1.16.0
