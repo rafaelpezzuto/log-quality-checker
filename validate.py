@@ -33,6 +33,20 @@ def _get_execution_mode(path: str):
     else:
         raise FileNotFoundError()
     return 'validate-directory'
+
+
+def _get_validation_functions(validation):
+    validation_list = []
+
+    if 'path' in validation:
+        validation_list.append(validate_path)
+
+    if 'content' in validation:
+        validation_list.append(validate_content)
+
+    return validation_list
+
+
 def file_type(path):
     with open(path, 'rb') as fin:
         magic_code = magic.from_buffer(fin.read(2048), mime=True)
