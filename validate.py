@@ -44,6 +44,13 @@ def file_name_date(path):
         match = re.search(pattern, tail)
         if match:
             return match.group()
+
+
+def file_name_has_paperboy_format(path):
+    head, tail = os.path.split(path)
+    if re.match(PATTERN_PAPERBOY, tail):
+        return True
+
 def _print_header():
     print(app_msg)
 
