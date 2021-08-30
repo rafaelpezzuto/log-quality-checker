@@ -161,6 +161,33 @@ def _evaluate_ymdh_results(ymdh: dict, file_date: str):
         return False
     
     return True
+
+
+def validate_path(path):
+    results = {}
+
+    for func in [
+        file_name_date,
+        file_name_collection,
+        file_name_has_paperboy_format,
+        file_type
+    ]:
+        results[func.__name__] = func(path)
+
+    return results
+
+
+def validate_content(path):
+    results = {}
+
+    file_data = _open_file(path)
+
+    for func in [
+        log_content,
+    ]:
+        results[func.__name__] = func(file_data)
+
+    return results
 def _print_header():
     print(app_msg)
 
