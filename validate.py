@@ -200,6 +200,21 @@ def run_validations(path: str, validations: list):
     validation_results.update(evaluate_result_validations(validation_results))
     
     return validation_results
+
+
+def evaluate_result_validations(results):
+    evaluation_ip = _evaluate_ip_results(results['validate_content']['results']['log_content']['ip'])
+    evaluation_date = _evaluate_ymdh_results(
+        results['validate_content']['results']['log_content']['datetime'],
+        results['validate_path']['results']['file_name_date']
+    )
+
+    return {
+        'valid_ip': evaluation_ip, 
+        'valid_date': evaluation_date
+    }
+
+
 def _print_header():
     print(app_msg)
 
