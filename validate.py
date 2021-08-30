@@ -100,6 +100,13 @@ def log_content(data):
         'invalid_lines': invalid_lines,
         'total_lines': total_lines
     }
+
+
+def _evaluate_ip_results(ip):
+    if ip['remote'] < ip['local']:
+        return False
+    return True
+
 def _print_header():
     print(app_msg)
 
