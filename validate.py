@@ -26,6 +26,13 @@ PATTERN_IP_DATETIME_OTHERS = r'^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - - \[(.*)\
 PATTERN_IP_DATETIME_RESOUCE_STATUS_LENGHT_REFERRER_EQUIPMENT = r'^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - - \[(.*)\] \"GET (.*) .*\" (\d{3}) (\d*) \"(.*)\" \"(.*)\"$'
 
 
+def _get_execution_mode(path: str):
+    if os.path.exists(path):
+        if os.path.isfile(path):
+            return 'validate-file'
+    else:
+        raise FileNotFoundError()
+    return 'validate-directory'
 def file_type(path):
     with open(path, 'rb') as fin:
         magic_code = magic.from_buffer(fin.read(2048), mime=True)
