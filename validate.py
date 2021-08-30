@@ -51,6 +51,13 @@ def file_name_has_paperboy_format(path):
     if re.match(PATTERN_PAPERBOY, tail):
         return True
 
+def _is_ip_local_or_remote(ip: str):
+    ipa = ip_address(ip)
+    if ipa.is_global:
+        return 'remote'
+    return 'local'
+
+
 def _print_header():
     print(app_msg)
 
