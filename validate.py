@@ -36,6 +36,14 @@ def file_name_collection(path):
     for file_identifier in COLLECTION_FILE_NAME_IDENTIFIERS:
         if file_identifier in path:
             return file_identifier
+
+
+def file_name_date(path):
+    head, tail = os.path.split(path)
+    for pattern in [PATTERN_Y_M_D, PATTERN_YMD]:
+        match = re.search(pattern, tail)
+        if match:
+            return match.group()
 def _print_header():
     print(app_msg)
 
