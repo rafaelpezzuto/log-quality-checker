@@ -51,6 +51,17 @@ def file_name_has_paperboy_format(path):
     if re.match(PATTERN_PAPERBOY, tail):
         return True
 
+
+def _open_file(path):
+    file_mime = file_type(path)
+
+    if file_mime == 'application/gzip':
+        return GzipFile(path, 'rb')
+
+    elif file_mime == 'application/text':
+        return open(path, 'r')
+
+
 def _is_ip_local_or_remote(ip: str):
     ipa = ip_address(ip)
     if ipa.is_global:
