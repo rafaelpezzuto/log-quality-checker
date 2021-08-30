@@ -30,6 +30,12 @@ def file_type(path):
     with open(path, 'rb') as fin:
         magic_code = magic.from_buffer(fin.read(2048), mime=True)
         return magic_code
+
+
+def file_name_collection(path):
+    for file_identifier in COLLECTION_FILE_NAME_IDENTIFIERS:
+        if file_identifier in path:
+            return file_identifier
 def _print_header():
     print(app_msg)
 
