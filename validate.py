@@ -107,6 +107,34 @@ def _evaluate_ip_results(ip):
         return False
     return True
 
+
+def _evaluate_ymdh_results(ymdh: dict, file_date: str):
+    file_date_object = datetime.strptime(file_date, '%Y-%m-%d')   
+    min_date_object, max_date_object = datetime(*min(ymdh)), datetime(*max(ymdh))
+
+    # há dados de dias diferentes no conteúdo do arquivo
+    if (min_date_object.year != max_date_object.year) or \
+    (min_date_object.month != min_date_object.month) or \
+    (min_date_object.day != min_date_object.day):
+        return False
+
+    # a menor data registrada é muito anterior à data indicada no nome do arquivo
+    if min_date_object < file_date_object - timedelta(days=2):
+        return False
+
+    # a maior data registrada é muito anterior à data indicada no nome do arquivo
+    if max_date_object < file_date_object - timedelta(days=2):
+        return False
+
+    # há datas muito posteriores à data indicada no nome do arquivo
+    if min_date_object > file_date_object + timedelta(days=2):
+        return False
+
+    # há datas muito posteriores à data indicada no nome do arquivo
+    if max_date_object > file_date_object + timedelta(days=2):
+        return False
+    
+    return True
 def _print_header():
     print(app_msg)
 
