@@ -58,6 +58,37 @@ def _is_ip_local_or_remote(ip: str):
     return 'local'
 
 
+def log_content(data):
+    ips = {'local': 0, 'remote': 0}
+    datetimes = {}
+    invalid_lines = 0
+    total_lines = 0
+
+    for row in data:
+        decoded_row = row.decode().strip()
+        match = re.search(PATTERN_IP_DATETIME_OTHERS, decoded_row)
+        if match and len(match.groups()) == 3:
+            ip_value = match.group(1)            
+            ip_type = _is_ip_local_or_remote(ip_value)
+            ips[ip_type] += 1
+
+            matched_datetime = match.group(2)
+            year, month, day, hour = _extract_year_month_day_hour(matched_datetime)
+
+            if (year, month, day, hour) not in datetimes:
+                datetimes[(year, month, day, hour)] = 0
+            datetimes[(year, month, day, hour)] += 1
+
+        else:
+            invalid_lines += 1
+        total_lines += 1
+    
+    return {
+        'ip': ips,
+        'datetime': datetimes, 
+        'invalid_lines': invalid_lines,
+        'total_lines': total_lines
+    }
 def _print_header():
     print(app_msg)
 
