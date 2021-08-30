@@ -69,6 +69,11 @@ def _is_ip_local_or_remote(ip: str):
     return 'local'
 
 
+def _extract_year_month_day_hour(log_date: str):
+    dt = datetime.strptime(log_date, '%d/%b/%Y:%H:%M:%S %z')
+    return dt.year, dt.month, dt.day, dt.hour
+
+
 def log_content(data):
     ips = {'local': 0, 'remote': 0}
     datetimes = {}
