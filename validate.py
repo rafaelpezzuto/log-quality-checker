@@ -261,3 +261,30 @@ def print_results(results, file_path):
         ]
     )
     print(line)
+
+
+def main():
+    parser = ArgumentParser()
+    parser.add_argument('-p', '--path', help='arquivo ou diretório a ser verificado')
+    parser.add_argument('-v', '--validation', nargs='+', help='conjunto de verificações a serem executadas')
+    params = parser.parse_args()
+
+    execution_mode = _get_execution_mode(params.path)
+    validations = _get_validation_functions(params.validation)
+
+    _print_header()
+    
+    if execution_mode == 'validate-file':
+        results = run_validations(params.path, validations)
+        print_results(results, params.path)
+
+    elif execution_mode == 'validate-directory':
+        for root, dirs, files in os.walk(params.path):
+            for file in files:
+                file_path = os.path.join(root, file)
+                results = run_validations(file_path, validations)
+                print_results(results, file_path)
+
+
+if __name__ == '__main__':
+    main()
