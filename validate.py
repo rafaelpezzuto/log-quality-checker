@@ -35,16 +35,10 @@ def _get_execution_mode(path):
     return 'validate-directory'
 
 
-def _get_validation_functions(validation):
-    validation_list = []
-
-    if 'path' in validation:
-        validation_list.append(validate_path)
-
-    if 'content' in validation:
-        validation_list.append(validate_content)
-
-    return validation_list
+def _get_validation_functions(only_name):
+    if only_name:
+        return [validate_path]
+    return [validate_path, validate_content]
 
 
 def file_type(path):
@@ -265,12 +259,12 @@ def print_results(results, file_path):
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument('-p', '--path', help='arquivo ou diretório a ser verificado')
-    parser.add_argument('-v', '--validation', nargs='+', help='conjunto de verificações a serem executadas')
+    parser.add_argument('-p', '--path', help='arquivo ou diretório a ser verificado', required=True)
+    parser.add_argument('--only_name', default=False, help='indica para validar apenas o nome e o caminho do(s) arquivo(s)', action='store_true')
     params = parser.parse_args()
 
     execution_mode = _get_execution_mode(params.path)
-    validations = _get_validation_functions(params.validation)
+    validations = _get_validation_functions(params.only_name)
 
     _print_header()
     
