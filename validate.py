@@ -2,7 +2,6 @@ from argparse import ArgumentParser
 from datetime import datetime, timedelta
 from gzip import GzipFile
 from ipaddress import ip_address
-from time import time
 from values import COLLECTION_FILE_NAME_IDENTIFIERS
 
 import magic
