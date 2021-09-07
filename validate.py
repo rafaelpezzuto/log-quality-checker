@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 from argparse import ArgumentParser
 from datetime import datetime, timedelta
 from gzip import GzipFile
