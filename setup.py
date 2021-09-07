@@ -15,7 +15,7 @@ tests_require = [
 ]
 
 setuptools.setup(
-    name="log-quality-checker",
+    name="scielo_usage_log_validator",
     version="0.1",
     author="SciELO",
     author_email="scielo-dev@googlegroups.com",
