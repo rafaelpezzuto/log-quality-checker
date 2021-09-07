@@ -84,8 +84,10 @@ def _is_ip_local_or_remote(ip):
     return 'local'
 
 
-    dt = datetime.strptime(log_date, '%d/%b/%Y:%H:%M:%S %z')
 def _extract_year_month_day_hour(log_date):
+    # Descarta offset
+    log_date = log_date.split(' ')[0]
+    dt = datetime.strptime(log_date, '%d/%b/%Y:%H:%M:%S')
     return dt.year, dt.month, dt.day, dt.hour
 
 
@@ -123,13 +125,20 @@ def log_content(data):
 
 
 def _evaluate_ip_results(ip):
-    if ip['remote'] < ip['local']:
+    if ip.get('remote', 0) < ip.get('local', 0):
         return False
     return True
 
 
-    file_date_object = datetime.strptime(file_date, '%Y-%m-%d')   
 def _evaluate_ymdh_results(ymdh, file_date):
+    try:
+        file_date_object = datetime.strptime(file_date, '%Y-%m-%d')   
+    except ValueError:
+        return False
+
+    if not ymdh:
+        return None
+
     min_date_object, max_date_object = datetime(*min(ymdh)), datetime(*max(ymdh))
 
     # há dados de dias diferentes no conteúdo do arquivo
@@ -197,10 +206,10 @@ def run_validations(path, validations):
 
 
 def evaluate_result_validations(results):
-    evaluation_ip = _evaluate_ip_results(results['validate_content']['results']['log_content']['ip'])
+    evaluation_ip = _evaluate_ip_results(results.get('validate_content', {}.get('results', {}).get('log_content', {}).get('ip', {})))
     evaluation_date = _evaluate_ymdh_results(
-        results['validate_content']['results']['log_content']['datetime'],
-        results['validate_path']['results']['file_name_date']
+        results.get('validate_content', {}).get('results', {}).get('log_content', {}).get('datetime', []),
+        results.get('validate_path', {}).get('results', {}).get('file_name_date', '')
     )
 
     return {
@@ -232,7 +241,7 @@ def print_results(results, file_path):
     line = '\t'.join(
         [file_path] +
         [
-            str(results['validate_path']['results'][x]) for x in [
+            str(results.get('validate_path', {}).get('results', {}).get(x, '')) for x in [
                 'file_name_date',
                 'file_name_collection',
                 'file_type',
@@ -243,12 +252,12 @@ def print_results(results, file_path):
             str(results['valid_date'])
         ] +
         [
-            str(results['validate_content']['results']['log_content'][z]) for z in [
+            str(results.get('validate_content', {}).get('results', {}).get('log_content', {}).get(z, '')) for z in [
                 'invalid_lines',
                 'total_lines']
         ] +
         [
-            str(results['validate_content']['results']['log_content']['ip'][k]) for k in [
+            str(results.get('validate_content', {}).get('results', {}).get('log_content', {}).get('ip', {}).get(k, '')) for k in [
                 'local',
                 'remote'
             ]
@@ -277,6 +286,7 @@ def main():
             for file in files:
                 file_path = os.path.join(root, file)
                 results = run_validations(file_path, validations)
+                print(file_path)
                 print_results(results, file_path)
 
 
