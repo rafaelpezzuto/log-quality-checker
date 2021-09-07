@@ -25,7 +25,7 @@ PATTERN_IP_DATETIME_OTHERS = r'^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - - \[(.*)\
 PATTERN_IP_DATETIME_RESOUCE_STATUS_LENGHT_REFERRER_EQUIPMENT = r'^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - - \[(.*)\] \"GET (.*) .*\" (\d{3}) (\d*) \"(.*)\" \"(.*)\"$'
 
 
-def _get_execution_mode(path: str):
+def _get_execution_mode(path):
     if os.path.exists(path):
         if os.path.isfile(path):
             return 'validate-file'
@@ -82,15 +82,15 @@ def _open_file(path):
         return open(path, 'r')
 
 
-def _is_ip_local_or_remote(ip: str):
+def _is_ip_local_or_remote(ip):
     ipa = ip_address(ip)
     if ipa.is_global:
         return 'remote'
     return 'local'
 
 
-def _extract_year_month_day_hour(log_date: str):
     dt = datetime.strptime(log_date, '%d/%b/%Y:%H:%M:%S %z')
+def _extract_year_month_day_hour(log_date):
     return dt.year, dt.month, dt.day, dt.hour
 
 
@@ -133,8 +133,8 @@ def _evaluate_ip_results(ip):
     return True
 
 
-def _evaluate_ymdh_results(ymdh: dict, file_date: str):
     file_date_object = datetime.strptime(file_date, '%Y-%m-%d')   
+def _evaluate_ymdh_results(ymdh, file_date):
     min_date_object, max_date_object = datetime(*min(ymdh)), datetime(*max(ymdh))
 
     # há dados de dias diferentes no conteúdo do arquivo
@@ -189,7 +189,7 @@ def validate_content(path):
     return results
 
 
-def run_validations(path: str, validations: list):
+def run_validations(path, validations):
     validation_results = {}
 
     for val in validations:
