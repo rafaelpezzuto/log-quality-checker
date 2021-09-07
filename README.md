@@ -1,1 +1,1 @@
-# log-quality-checker
+# SciELO Log Validator

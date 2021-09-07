@@ -15,7 +15,7 @@ tests_require = [
 ]
 
 setuptools.setup(
-    name="scielo_usage_log_validator",
+    name="scielo-log-validator",
     version="0.1",
     author="SciELO",
     author_email="scielo-dev@googlegroups.com",
@@ -40,8 +40,6 @@ setuptools.setup(
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 2 :: Only",
-        "Topic :: Internet :: WWW/HTTP",
-        "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
         "Operating System :: OS Independent",
     ],
 )
