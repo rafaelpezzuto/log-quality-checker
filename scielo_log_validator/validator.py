@@ -89,7 +89,7 @@ def _is_ip_local_or_remote(ip):
 
 
 def _extract_year_month_day_hour(log_date):
-    # Descarta offset
+    # descarta offset
     log_date = log_date.split(' ')[0]
     dt = datetime.strptime(log_date, '%d/%b/%Y:%H:%M:%S')
     return dt.year, dt.month, dt.day, dt.hour
@@ -145,25 +145,25 @@ def _evaluate_ymdh_results(ymdh, file_date):
 
     min_date_object, max_date_object = datetime(*min(ymdh)), datetime(*max(ymdh))
 
-    # há dados de dias diferentes no conteúdo do arquivo
+    # se há dados de dias diferentes no conteúdo do arquivo
     if (min_date_object.year != max_date_object.year) or \
     (min_date_object.month != min_date_object.month) or \
     (min_date_object.day != min_date_object.day):
         return False
 
-    # a menor data registrada é muito anterior à data indicada no nome do arquivo
+    # se a menor data registrada é muito anterior à data indicada no nome do arquivo
     if min_date_object < file_date_object - timedelta(days=2):
         return False
 
-    # a maior data registrada é muito anterior à data indicada no nome do arquivo
+    # se a maior data registrada é muito anterior à data indicada no nome do arquivo
     if max_date_object < file_date_object - timedelta(days=2):
         return False
 
-    # há datas muito posteriores à data indicada no nome do arquivo
+    # se há datas muito posteriores à data indicada no nome do arquivo
     if min_date_object > file_date_object + timedelta(days=2):
         return False
 
-    # há datas muito posteriores à data indicada no nome do arquivo
+    # se há datas muito posteriores à data indicada no nome do arquivo
     if max_date_object > file_date_object + timedelta(days=2):
         return False
     
