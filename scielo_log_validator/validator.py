@@ -45,19 +45,19 @@ def _get_validation_functions(only_name):
     return [validate_path, validate_content]
 
 
-def file_type(path):
+def _get_mimetype_from_file(path):
     with open(path, 'rb') as fin:
         magic_code = magic.from_buffer(fin.read(2048), mime=True)
         return magic_code
 
 
-def file_name_collection(path):
+def _get_collection_from_file_name(path):
     for file_identifier in COLLECTION_FILE_NAME_IDENTIFIERS:
         if file_identifier in path:
             return file_identifier
 
 
-def file_name_date(path):
+def _get_date_from_file_name(path):
     head, tail = os.path.split(path)
     for pattern in [PATTERN_Y_M_D, PATTERN_YMD]:
         match = re.search(pattern, tail)
@@ -65,14 +65,14 @@ def file_name_date(path):
             return match.group()
 
 
-def file_name_has_paperboy_format(path):
+def _has_file_name_paperboy_format(path):
     head, tail = os.path.split(path)
     if re.match(PATTERN_PAPERBOY, tail):
         return True
 
 
 def _open_file(path):
-    file_mime = file_type(path)
+    file_mime = _get_mimetype_from_file(path)
 
     if file_mime == 'application/gzip':
         return GzipFile(path, 'rb')
@@ -95,7 +95,7 @@ def _extract_year_month_day_hour(log_date):
     return dt.year, dt.month, dt.day, dt.hour
 
 
-def log_content(data):
+def _get_content_summary(data):
     ips = {'local': 0, 'remote': 0}
     datetimes = {}
     invalid_lines = 0
@@ -170,7 +170,7 @@ def _evaluate_ymdh_results(ymdh, file_date):
     return True
 
 
-def validate_path(path):
+def _validate_path(path):
     results = {}
 
     for func in [
@@ -184,7 +184,7 @@ def validate_path(path):
     return results
 
 
-def validate_content(path):
+def _validate_content(path):
     results = {}
 
     file_data = _open_file(path)
@@ -197,8 +197,8 @@ def validate_content(path):
     return results
 
 
-def run_validations(path, validations):
     validation_results = {}
+def validate(path, validations):
 
     for val in validations:
         v_results = val(path)
