@@ -199,12 +199,12 @@ def _validate_path(path):
     results = {}
 
     for func in [
-        file_name_date,
-        file_name_collection,
-        file_name_has_paperboy_format,
-        file_type
+        (_get_date_from_file_name, 'date'),
+        (_get_collection_from_file_name, 'collection'),
+        (_has_file_name_paperboy_format, 'paperboy'),
+        (_get_mimetype_from_file, 'mimetype')
     ]:
-        results[func.__name__] = func(path)
+        results[func[1]] = func[0](path)
 
     return results
 
@@ -215,36 +215,23 @@ def _validate_content(path):
     file_data = _open_file(path)
 
     for func in [
-        log_content,
+        (_get_content_summary, 'summary'),
     ]:
-        results[func.__name__] = func(file_data)
+        results[func[1]] = func[0](file_data)
 
     return results
 
 
-    validation_results = {}
 def validate(path, validations):
+    results = {}
 
     for val in validations:
-        v_results = val(path)
-        validation_results[val.__name__] = {'results': v_results}
+        val_results = val(path)
+        results[val.__name__.replace('_validate_', '')] = val_results
 
-    validation_results.update(evaluate_result_validations(validation_results))
+    _compute_results(results)
     
-    return validation_results
-
-
-def evaluate_result_validations(results):
-    evaluation_ip = _evaluate_ip_results(results.get('validate_content', {}.get('results', {}).get('log_content', {}).get('ip', {})))
-    evaluation_date = _evaluate_ymdh_results(
-        results.get('validate_content', {}).get('results', {}).get('log_content', {}).get('datetime', []),
-        results.get('validate_path', {}).get('results', {}).get('file_name_date', '')
-    )
-
-    return {
-        'valid_ip': evaluation_ip, 
-        'valid_date': evaluation_date
-    }
+    return results
 
 
 
