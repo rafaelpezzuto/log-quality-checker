@@ -17,6 +17,9 @@ import os
 import re
 
 
+MIN_ACCEPTABLE_PERCENT_OF_REMOTE_IPS = float(os.environ.get('MIN_ACCEPTABLE_PERCENT_OF_REMOTE_IPS', '10'))
+
+
 app_msg = '''
 SciELO Log Validator 0.1
     
