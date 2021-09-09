@@ -245,25 +245,27 @@ def _compute_results(results):
 def main():
     parser = ArgumentParser()
     parser.add_argument('-p', '--path', help='arquivo ou diretório a ser verificado', required=True)
-    parser.add_argument('--only_name', default=False, help='indica para validar apenas o nome e o caminho do(s) arquivo(s)', action='store_true')
+    parser.add_argument('--check_file_name_only', default=False, help='indica para validar apenas o nome e o caminho do(s) arquivo(s)', action='store_true')
     params = parser.parse_args()
 
     execution_mode = _get_execution_mode(params.path)
-    validations = _get_validation_functions(params.only_name)
+    validations = _get_validation_functions(params.check_file_name_only)
 
-    _print_header()
+    print(app_msg)
+    from pprint import pprint
     
     if execution_mode == 'validate-file':
-        results = run_validations(params.path, validations)
-        print_results(results, params.path)
+        results = validate(params.path, validations)
+        print(params.path)
+        pprint(results)
 
     elif execution_mode == 'validate-directory':
         for root, dirs, files in os.walk(params.path):
             for file in files:
                 file_path = os.path.join(root, file)
-                results = run_validations(file_path, validations)
-                print(file_path)
-                print_results(results, file_path)
+                results = validate(file_path, validations)
+                print(params.path)
+                pprint(results)
 
 
 if __name__ == '__main__':
