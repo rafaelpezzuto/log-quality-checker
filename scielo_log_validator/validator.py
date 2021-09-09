@@ -21,7 +21,7 @@ MIN_ACCEPTABLE_PERCENT_OF_REMOTE_IPS = float(os.environ.get('MIN_ACCEPTABLE_PERC
 
 
 app_msg = '''
-SciELO Log Validator 0.1
+SciELO Log Validator
     
 This script is responsible for validating log usage records obtained from the SciELO Network Apache Servers.
 A validation is composed of two main aspects as follows:
