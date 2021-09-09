@@ -39,10 +39,10 @@ def _get_execution_mode(path):
     return 'validate-directory'
 
 
-def _get_validation_functions(only_name):
-    if only_name:
-        return [validate_path]
-    return [validate_path, validate_content]
+def _get_validation_functions(check_file_name_only):
+    if check_file_name_only:
+        return [_validate_path]
+    return [_validate_path, _validate_content]
 
 
 def _get_mimetype_from_file(path):
