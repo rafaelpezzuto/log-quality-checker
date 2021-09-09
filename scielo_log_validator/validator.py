@@ -128,13 +128,30 @@ def _get_content_summary(data):
     }
 
 
-def _evaluate_ip_results(ip):
-    if ip.get('remote', 0) < ip.get('local', 0):
-        return False
-    return True
+def _analyse_ips_from_content(results):
+    remote_ips = results.get('content', {}).get('summary', {}).get('ips', {}).get('remote', 0)
+    local_ips = results.get('content', {}).get('summary', {}).get('ips', {}).get('local', 0)
+    total_lines = results.get('content', {}).get('summary', {}).get('total_lines', 0)
 
+    # se não houver linhas com IP detectado ou a validação não foi executada
+    if (remote_ips == 0 and local_ips == 0) or total_lines == 0:
+        return None
 
-def _evaluate_ymdh_results(ymdh, file_date):
+    # computa percentual de IPs remotos em relação ao total de linhas
+    percent_remote_ips = float(remote_ips)/float(total_lines) * 100
+
+    # computa percentual de IPs locais em relação ao total de linhas
+    percent_local_ips = float(local_ips)/float(total_lines) * 100
+
+    # o arquivo é válido se houver maior percentual de IPs remotos
+    if percent_remote_ips > percent_local_ips:
+        return True
+
+    # o arquivo é válido se houver um percentual mínimo de IPs remotos
+    if percent_remote_ips > MIN_ACCEPTABLE_PERCENT_OF_REMOTE_IPS:
+        return True
+
+    return False
     try:
         file_date_object = datetime.strptime(file_date, '%Y-%m-%d')   
     except ValueError:
