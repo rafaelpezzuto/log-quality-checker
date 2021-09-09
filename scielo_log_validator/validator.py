@@ -152,15 +152,23 @@ def _analyse_ips_from_content(results):
         return True
 
     return False
+
+
+def _analyse_dates(results):
+    file_path_date = results.get('path', {}).get('date', '')
+    file_content_dates = results.get('content', {}).get('summary', {}).get('datetimes', {})
+
+    # se não houver contéudo ou a validação não for executada
+    if not file_path_date or not file_content_dates:
+        return None
+
+    # o arquivo é inválido se não for possível obter uma data a partir do nome do arquivo
     try:
-        file_date_object = datetime.strptime(file_date, '%Y-%m-%d')   
+        file_date_object = datetime.strptime(file_path_date, '%Y-%m-%d')
     except ValueError:
         return False
 
-    if not ymdh:
-        return None
-
-    min_date_object, max_date_object = datetime(*min(ymdh)), datetime(*max(ymdh))
+    min_date_object, max_date_object = datetime(*min(file_content_dates)), datetime(*max(file_content_dates))
 
     # se há dados de dias diferentes no conteúdo do arquivo
     if (min_date_object.year != max_date_object.year) or \
