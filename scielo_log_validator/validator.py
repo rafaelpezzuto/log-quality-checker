@@ -121,8 +121,8 @@ def _get_content_summary(data):
         total_lines += 1
     
     return {
-        'ip': ips,
-        'datetime': datetimes, 
+        'ips': ips,
+        'datetimes': datetimes,
         'invalid_lines': invalid_lines,
         'total_lines': total_lines
     }
