@@ -234,6 +234,12 @@ def validate(path, validations):
     return results
 
 
+def _compute_results(results):
+    results['is_valid'] = {'ips': _analyse_ips_from_content(results)}
+    results['is_valid'].update({'dates': _analyse_dates(results)})
+    results['is_valid'].update({'all':
+        results['is_valid']['ips'] and results['is_valid']['dates']
+    })
 
 
 def main():
