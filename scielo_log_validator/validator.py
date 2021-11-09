@@ -6,7 +6,6 @@ from ipaddress import ip_address
 from scielo_log_validator.values import (
     COLLECTION_FILE_NAME_IDENTIFIERS,
     PATTERN_IP_DATETIME_OTHERS,
-    PATTERN_IP_DATETIME_RESOUCE_STATUS_LENGHT_REFERRER_EQUIPMENT,
     PATTERN_PAPERBOY,
     PATTERN_Y_M_D,
     PATTERN_YMD
