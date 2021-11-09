@@ -6,7 +6,6 @@ from ipaddress import ip_address
 from scielo_log_validator.values import (
     COLLECTION_FILE_NAME_IDENTIFIERS,
     PATTERN_IP_DATETIME_OTHERS,
-    PATTERN_IP_DATETIME_RESOUCE_STATUS_LENGHT_REFERRER_EQUIPMENT,
     PATTERN_PAPERBOY,
     PATTERN_Y_M_D,
     PATTERN_YMD
@@ -14,6 +13,7 @@ from scielo_log_validator.values import (
 
 import magic
 import os
+import operator
 import re
 
 
@@ -22,7 +22,7 @@ MIN_ACCEPTABLE_PERCENT_OF_REMOTE_IPS = float(os.environ.get('MIN_ACCEPTABLE_PERC
 
 app_msg = '''
 SciELO Log Validator
-    
+
 This script is responsible for validating log usage records obtained from the SciELO Network Apache Servers.
 A validation is composed of two main aspects as follows:
     1) Validation with regard to the file name
@@ -95,37 +95,51 @@ def _extract_year_month_day_hour(log_date):
     return dt.year, dt.month, dt.day, dt.hour
 
 
-def _get_content_summary(data):
+def _get_content_summary(path, total_lines, sample_lines):
     ips = {'local': 0, 'remote': 0}
     datetimes = {}
     invalid_lines = 0
-    total_lines = 0
 
-    for row in data:
-        decoded_row = row.decode().strip()
-        match = re.search(PATTERN_IP_DATETIME_OTHERS, decoded_row)
-        if match and len(match.groups()) == 3:
-            ip_value = match.group(1)            
-            ip_type = _is_ip_local_or_remote(ip_value)
-            ips[ip_type] += 1
+    eval_lines = set(range(0, total_lines, int(total_lines/sample_lines)))
+    line_counter = 0
 
-            matched_datetime = match.group(2)
-            year, month, day, hour = _extract_year_month_day_hour(matched_datetime)
+    with _open_file(path) as data:
+        for row in data:
+            line_counter += 1
 
-            if (year, month, day, hour) not in datetimes:
-                datetimes[(year, month, day, hour)] = 0
-            datetimes[(year, month, day, hour)] += 1
+            if line_counter in eval_lines:
 
-        else:
-            invalid_lines += 1
-        total_lines += 1
-    
+                decoded_row = row.decode().strip()
+                match = re.search(PATTERN_IP_DATETIME_OTHERS, decoded_row)
+
+                if match and len(match.groups()) == 3:
+                    ip_value = match.group(1)
+                    ip_type = _is_ip_local_or_remote(ip_value)
+                    ips[ip_type] += 1
+
+                    matched_datetime = match.group(2)
+                    year, month, day, hour = _extract_year_month_day_hour(matched_datetime)
+
+                    if (year, month, day, hour) not in datetimes:
+                        datetimes[(year, month, day, hour)] = 0
+                    datetimes[(year, month, day, hour)] += 1
+
+                else:
+                    invalid_lines += 1
+
     return {
         'ips': ips,
         'datetimes': datetimes,
         'invalid_lines': invalid_lines,
         'total_lines': total_lines
     }
+
+
+def _count_lines(path):
+    file_data = _open_file(path)
+    total_lines = sum(1 for line in file_data)
+    file_data.close()
+    return total_lines
 
 
 def _analyse_ips_from_content(results):
@@ -191,47 +205,64 @@ def _analyse_dates(results):
     # se há datas muito posteriores à data indicada no nome do arquivo
     if max_date_object > file_date_object + timedelta(days=2):
         return False
-    
+
     return True
 
 
-def _validate_path(path):
+def _validate_path(path, sample_size=1.0):
     results = {}
 
-    for func in [
+    for func_impl, func_name in [
         (_get_date_from_file_name, 'date'),
         (_get_collection_from_file_name, 'collection'),
         (_has_file_name_paperboy_format, 'paperboy'),
         (_get_mimetype_from_file, 'mimetype')
     ]:
-        results[func[1]] = func[0](path)
+        results[func_name] = func_impl(path)
 
     return results
 
 
-def _validate_content(path):
+def _validate_content(path, sample_size=1.0):
     results = {}
 
-    file_data = _open_file(path)
+    total_lines = _count_lines(path)
+    sample_lines = int(total_lines * sample_size)
 
-    for func in [
-        (_get_content_summary, 'summary'),
-    ]:
-        results[func[1]] = func[0](file_data)
+    results['summary'] = _get_content_summary(path, total_lines, sample_lines)
 
     return results
 
 
-def validate(path, validations):
+def validate(path, validations, sample_size):
     results = {}
 
     for val in validations:
-        val_results = val(path)
+        val_results = val(path, sample_size)
         results[val.__name__.replace('_validate_', '')] = val_results
 
     _compute_results(results)
-    
+
     return results
+
+
+def _compute_probably_date(results):
+    file_content_dates = results.get('content', {}).get('summary', {}).get('datetimes', {})
+
+    ymd_to_freq = {}
+    for k, frequency in file_content_dates.items():
+        year, month, day, hour = k
+        if (year, month, day) not in ymd_to_freq:
+            ymd_to_freq[(year, month, day)] = 0
+        ymd_to_freq[(year, month, day)] += frequency
+
+    ymd, freq = sorted(ymd_to_freq.items(), key=operator.itemgetter(1)).pop()
+    y, m, d = ymd
+
+    try:
+        return datetime(y, m, d)
+    except ValueError:
+        print('It was not possible to determine a probably date')
 
 
 def _compute_results(results):
@@ -240,6 +271,7 @@ def _compute_results(results):
     results['is_valid'].update({'all':
         results['is_valid']['ips'] and results['is_valid']['dates']
     })
+    results['probably_date'] = _compute_probably_date(results)
 
 
 def main():
@@ -253,7 +285,7 @@ def main():
 
     print(app_msg)
     from pprint import pprint
-    
+
     if execution_mode == 'validate-file':
         results = validate(params.path, validations)
         print(params.path)
