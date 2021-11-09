@@ -197,42 +197,40 @@ def _analyse_dates(results):
     # se há datas muito posteriores à data indicada no nome do arquivo
     if max_date_object > file_date_object + timedelta(days=2):
         return False
-    
+
     return True
 
 
-def _validate_path(path):
+def _validate_path(path, sample_size=1.0):
     results = {}
 
-    for func in [
+    for func_impl, func_name in [
         (_get_date_from_file_name, 'date'),
         (_get_collection_from_file_name, 'collection'),
         (_has_file_name_paperboy_format, 'paperboy'),
         (_get_mimetype_from_file, 'mimetype')
     ]:
-        results[func[1]] = func[0](path)
+        results[func_name] = func_impl(path)
 
     return results
 
 
-def _validate_content(path):
+def _validate_content(path, sample_size=1.0):
     results = {}
 
-    file_data = _open_file(path)
+    total_lines = _count_lines(path)
+    sample_lines = int(total_lines * sample_size)
 
-    for func in [
-        (_get_content_summary, 'summary'),
-    ]:
-        results[func[1]] = func[0](file_data)
+    results['summary'] = _get_content_summary(path, total_lines, sample_lines)
 
     return results
 
 
-def validate(path, validations):
+def validate(path, validations, sample_size):
     results = {}
 
     for val in validations:
-        val_results = val(path)
+        val_results = val(path, sample_size)
         results[val.__name__.replace('_validate_', '')] = val_results
 
     _compute_results(results)
