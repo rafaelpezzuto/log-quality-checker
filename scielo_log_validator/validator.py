@@ -233,6 +233,25 @@ def validate(path, validations):
     return results
 
 
+def _compute_probably_date(results):
+    file_content_dates = results.get('content', {}).get('summary', {}).get('datetimes', {})
+
+    ymd_to_freq = {}
+    for k, frequency in file_content_dates.items():
+        year, month, day, hour = k
+        if (year, month, day) not in ymd_to_freq:
+            ymd_to_freq[(year, month, day)] = 0
+        ymd_to_freq[(year, month, day)] += frequency
+
+    ymd, freq = sorted(ymd_to_freq.items(), key=operator.itemgetter(1)).pop()
+    y, m, d = ymd
+
+    try:
+        return datetime(y, m, d)
+    except ValueError:
+        print('It was not possible to determine a probably date')
+
+
 def _compute_results(results):
     results['is_valid'] = {'ips': _analyse_ips_from_content(results)}
     results['is_valid'].update({'dates': _analyse_dates(results)})
