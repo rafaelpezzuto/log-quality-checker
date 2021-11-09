@@ -127,6 +127,13 @@ def _get_content_summary(data):
     }
 
 
+def _count_lines(path):
+    file_data = _open_file(path)
+    total_lines = sum(1 for line in file_data)
+    file_data.close()
+    return total_lines
+
+
 def _analyse_ips_from_content(results):
     remote_ips = results.get('content', {}).get('summary', {}).get('ips', {}).get('remote', 0)
     local_ips = results.get('content', {}).get('summary', {}).get('ips', {}).get('local', 0)
