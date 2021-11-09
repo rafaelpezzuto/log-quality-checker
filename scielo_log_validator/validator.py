@@ -13,6 +13,7 @@ from scielo_log_validator.values import (
 
 import magic
 import os
+import operator
 import re
 
 
@@ -21,7 +22,7 @@ MIN_ACCEPTABLE_PERCENT_OF_REMOTE_IPS = float(os.environ.get('MIN_ACCEPTABLE_PERC
 
 app_msg = '''
 SciELO Log Validator
-    
+
 This script is responsible for validating log usage records obtained from the SciELO Network Apache Servers.
 A validation is composed of two main aspects as follows:
     1) Validation with regard to the file name
@@ -94,31 +95,38 @@ def _extract_year_month_day_hour(log_date):
     return dt.year, dt.month, dt.day, dt.hour
 
 
-def _get_content_summary(data):
+def _get_content_summary(path, total_lines, sample_lines):
     ips = {'local': 0, 'remote': 0}
     datetimes = {}
     invalid_lines = 0
-    total_lines = 0
 
-    for row in data:
-        decoded_row = row.decode().strip()
-        match = re.search(PATTERN_IP_DATETIME_OTHERS, decoded_row)
-        if match and len(match.groups()) == 3:
-            ip_value = match.group(1)            
-            ip_type = _is_ip_local_or_remote(ip_value)
-            ips[ip_type] += 1
+    eval_lines = set(range(0, total_lines, int(total_lines/sample_lines)))
+    line_counter = 0
 
-            matched_datetime = match.group(2)
-            year, month, day, hour = _extract_year_month_day_hour(matched_datetime)
+    with _open_file(path) as data:
+        for row in data:
+            line_counter += 1
 
-            if (year, month, day, hour) not in datetimes:
-                datetimes[(year, month, day, hour)] = 0
-            datetimes[(year, month, day, hour)] += 1
+            if line_counter in eval_lines:
 
-        else:
-            invalid_lines += 1
-        total_lines += 1
-    
+                decoded_row = row.decode().strip()
+                match = re.search(PATTERN_IP_DATETIME_OTHERS, decoded_row)
+
+                if match and len(match.groups()) == 3:
+                    ip_value = match.group(1)
+                    ip_type = _is_ip_local_or_remote(ip_value)
+                    ips[ip_type] += 1
+
+                    matched_datetime = match.group(2)
+                    year, month, day, hour = _extract_year_month_day_hour(matched_datetime)
+
+                    if (year, month, day, hour) not in datetimes:
+                        datetimes[(year, month, day, hour)] = 0
+                    datetimes[(year, month, day, hour)] += 1
+
+                else:
+                    invalid_lines += 1
+
     return {
         'ips': ips,
         'datetimes': datetimes,
