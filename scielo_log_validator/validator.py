@@ -236,7 +236,7 @@ def validate(path, validations):
         results[val.__name__.replace('_validate_', '')] = val_results
 
     _compute_results(results)
-    
+
     return results
 
 
@@ -265,6 +265,7 @@ def _compute_results(results):
     results['is_valid'].update({'all':
         results['is_valid']['ips'] and results['is_valid']['dates']
     })
+    results['probably_date'] = _compute_probably_date(results)
 
 
 def main():
@@ -278,7 +279,7 @@ def main():
 
     print(app_msg)
     from pprint import pprint
-    
+
     if execution_mode == 'validate-file':
         results = validate(params.path, validations)
         print(params.path)
