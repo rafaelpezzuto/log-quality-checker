@@ -74,7 +74,7 @@ def _has_file_name_paperboy_format(path):
 def _open_file(path):
     file_mime = _get_mimetype_from_file(path)
 
-    if file_mime == 'application/gzip':
+    if file_mime in ('application/gzip', 'application/x-gzip'):
         return GzipFile(path, 'rb')
 
     elif file_mime == 'application/text':
