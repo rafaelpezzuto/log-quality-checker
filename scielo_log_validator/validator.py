@@ -10,6 +10,7 @@ from scielo_log_validator.values import (
     PATTERN_Y_M_D,
     PATTERN_YMD
 )
+from scielo_log_validator.exceptions import InvalidLogFileMimeError
 
 import magic
 import os
@@ -76,9 +77,10 @@ def _open_file(path):
 
     if file_mime in ('application/gzip', 'application/x-gzip'):
         return GzipFile(path, 'rb')
-
-    elif file_mime == 'application/text':
+    elif file_mime in ('application/text', 'text/plain'):
         return open(path, 'r')
+    else:
+        raise InvalidLogFileMimeError('Arquivo de log inválido: ' % file_path)
 
 
 def _is_ip_local_or_remote(ip):
@@ -104,13 +106,12 @@ def _get_content_summary(path, total_lines, sample_lines):
     line_counter = 0
 
     with _open_file(path) as data:
-        for row in data:
+        for line in data:
+            decoded_line = line.decode().strip() if isinstance(line, bytes) else line.strip()
             line_counter += 1
 
             if line_counter in eval_lines:
-
-                decoded_row = row.decode().strip()
-                match = re.search(PATTERN_IP_DATETIME_OTHERS, decoded_row)
+                match = re.search(PATTERN_IP_DATETIME_OTHERS, decoded_line)
 
                 if match and len(match.groups()) == 3:
                     ip_value = match.group(1)
