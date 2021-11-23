@@ -10,6 +10,7 @@ from scielo_log_validator.values import (
     PATTERN_Y_M_D,
     PATTERN_YMD
 )
+from scielo_log_validator.exceptions import InvalidLogFileMimeError
 
 import magic
 import os
@@ -76,9 +77,10 @@ def _open_file(path):
 
     if file_mime in ('application/gzip', 'application/x-gzip'):
         return GzipFile(path, 'rb')
-
-    elif file_mime == 'application/text':
+    elif file_mime in ('application/text', 'text/plain'):
         return open(path, 'r')
+    else:
+        raise InvalidLogFileMimeError('Arquivo de log inválido: ' % file_path)
 
 
 def _is_ip_local_or_remote(ip):
@@ -104,13 +106,12 @@ def _get_content_summary(path, total_lines, sample_lines):
     line_counter = 0
 
     with _open_file(path) as data:
-        for row in data:
+        for line in data:
+            decoded_line = line.decode().strip() if isinstance(line, bytes) else line.strip()
             line_counter += 1
 
             if line_counter in eval_lines:
-
-                decoded_row = row.decode().strip()
-                match = re.search(PATTERN_IP_DATETIME_OTHERS, decoded_row)
+                match = re.search(PATTERN_IP_DATETIME_OTHERS, decoded_line)
 
                 if match and len(match.groups()) == 3:
                     ip_value = match.group(1)
@@ -209,7 +210,7 @@ def _analyse_dates(results):
     return True
 
 
-def _validate_path(path, sample_size=1.0):
+def _validate_path(path, sample_size=0.1):
     results = {}
 
     for func_impl, func_name in [
@@ -223,7 +224,7 @@ def _validate_path(path, sample_size=1.0):
     return results
 
 
-def _validate_content(path, sample_size=1.0):
+def _validate_content(path, sample_size=0.1):
     results = {}
 
     total_lines = _count_lines(path)
@@ -277,6 +278,7 @@ def _compute_results(results):
 def main():
     parser = ArgumentParser()
     parser.add_argument('-p', '--path', help='arquivo ou diretório a ser verificado', required=True)
+    parser.add_argument('-s', '--sample_size', help='tamanho da amostra a ser verificada', default=0.1, type=float)
     parser.add_argument('--check_file_name_only', default=False, help='indica para validar apenas o nome e o caminho do(s) arquivo(s)', action='store_true')
     params = parser.parse_args()
 
@@ -287,7 +289,7 @@ def main():
     from pprint import pprint
 
     if execution_mode == 'validate-file':
-        results = validate(params.path, validations)
+        results = validate(params.path, validations, params.sample_size)
         print(params.path)
         pprint(results)
 
