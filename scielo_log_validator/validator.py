@@ -209,7 +209,7 @@ def _analyse_dates(results):
     return True
 
 
-def _validate_path(path, sample_size=1.0):
+def _validate_path(path, sample_size=0.1):
     results = {}
 
     for func_impl, func_name in [
@@ -223,7 +223,7 @@ def _validate_path(path, sample_size=1.0):
     return results
 
 
-def _validate_content(path, sample_size=1.0):
+def _validate_content(path, sample_size=0.1):
     results = {}
 
     total_lines = _count_lines(path)
@@ -277,6 +277,7 @@ def _compute_results(results):
 def main():
     parser = ArgumentParser()
     parser.add_argument('-p', '--path', help='arquivo ou diretório a ser verificado', required=True)
+    parser.add_argument('-s', '--sample_size', help='tamanho da amostra a ser verificada', default=0.1, type=float)
     parser.add_argument('--check_file_name_only', default=False, help='indica para validar apenas o nome e o caminho do(s) arquivo(s)', action='store_true')
     params = parser.parse_args()
 
@@ -287,7 +288,7 @@ def main():
     from pprint import pprint
 
     if execution_mode == 'validate-file':
-        results = validate(params.path, validations)
+        results = validate(params.path, validations, params.sample_size)
         print(params.path)
         pprint(results)
 
