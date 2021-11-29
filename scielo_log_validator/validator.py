@@ -170,6 +170,8 @@ def _analyse_ips_from_content(results):
 
 
 def _analyse_dates(results):
+def _get_min_max_dates(dates):
+    return datetime(*min(dates)), datetime(*max(dates))
     file_path_date = results.get('path', {}).get('date', '')
     file_content_dates = results.get('content', {}).get('summary', {}).get('datetimes', {})
 
