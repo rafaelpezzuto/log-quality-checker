@@ -199,10 +199,6 @@ def _analyse_dates(results, days_delta=2):
 
     min_date_object, max_date_object = datetime(*min(file_content_dates)), datetime(*max(file_content_dates))
 
-    # se há dados de dias diferentes no conteúdo do arquivo
-    if (min_date_object.year != max_date_object.year) or \
-    (min_date_object.month != min_date_object.month) or \
-    (min_date_object.day != min_date_object.day):
         return False
 
     # se a menor data registrada é muito anterior à data indicada no nome do arquivo
