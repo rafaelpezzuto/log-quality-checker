@@ -80,7 +80,7 @@ def _open_file(path):
     elif file_mime in ('application/text', 'text/plain'):
         return open(path, 'r')
     else:
-        raise InvalidLogFileMimeError('Arquivo de log inválido: ' % file_path)
+        raise InvalidLogFileMimeError('Arquivo de log inválido: ' % path)
 
 
 def _is_ip_local_or_remote(ip):
