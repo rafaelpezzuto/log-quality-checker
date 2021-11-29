@@ -197,24 +197,18 @@ def _analyse_dates(results, days_delta=2):
     except ValueError:
         return False
 
-    min_date_object, max_date_object = datetime(*min(file_content_dates)), datetime(*max(file_content_dates))
+    min_date_object, max_date_object = _get_min_max_dates(file_content_dates)
 
+    if _date_is_much_lower(min_date_object, file_date_object, days_delta):
         return False
 
-    # se a menor data registrada é muito anterior à data indicada no nome do arquivo
-    if min_date_object < file_date_object - timedelta(days=2):
+    if _date_is_much_lower(max_date_object, file_date_object, days_delta):
         return False
 
-    # se a maior data registrada é muito anterior à data indicada no nome do arquivo
-    if max_date_object < file_date_object - timedelta(days=2):
+    if _date_is_much_greater(min_date_object, file_date_object, days_delta):
         return False
 
-    # se há datas muito posteriores à data indicada no nome do arquivo
-    if min_date_object > file_date_object + timedelta(days=2):
-        return False
-
-    # se há datas muito posteriores à data indicada no nome do arquivo
-    if max_date_object > file_date_object + timedelta(days=2):
+    if _date_is_much_greater(max_date_object, file_date_object, days_delta):
         return False
 
     return True
