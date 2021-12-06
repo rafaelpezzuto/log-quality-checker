@@ -186,6 +186,7 @@ def _date_is_much_greater(date_object, file_object_date, days_delta):
 def _analyse_dates(results, days_delta=2):
     file_path_date = results.get('path', {}).get('date', '')
     file_content_dates = results.get('content', {}).get('summary', {}).get('datetimes', {})
+    probably_date = results.get('probably_date')
 
     # se não houver contéudo ou a validação não for executada
     if not file_path_date or not file_content_dates:
@@ -197,18 +198,12 @@ def _analyse_dates(results, days_delta=2):
     except ValueError:
         return False
 
-    min_date_object, max_date_object = _get_min_max_dates(file_content_dates)
-
-    if _date_is_much_lower(min_date_object, file_date_object, days_delta):
+    # se a data provável do arquivo é muito menor do que a data indicada no nome do arquivo
+    if _date_is_much_lower(probably_date, file_date_object, days_delta):
         return False
 
-    if _date_is_much_lower(max_date_object, file_date_object, days_delta):
-        return False
-
-    if _date_is_much_greater(min_date_object, file_date_object, days_delta):
-        return False
-
-    if _date_is_much_greater(max_date_object, file_date_object, days_delta):
+    # se a data provável do arquivo é muito maior do que a data indicada no nome do arquivo
+    if _date_is_much_greater(probably_date, file_date_object, days_delta):
         return False
 
     return True
@@ -251,7 +246,7 @@ def validate(path, validations, sample_size):
     return results
 
 
-def _compute_probably_date(results):
+def _get_date_frequencies(results):
     file_content_dates = results.get('content', {}).get('summary', {}).get('datetimes', {})
 
     ymd_to_freq = {}
@@ -260,6 +255,12 @@ def _compute_probably_date(results):
         if (year, month, day) not in ymd_to_freq:
             ymd_to_freq[(year, month, day)] = 0
         ymd_to_freq[(year, month, day)] += frequency
+
+    return ymd_to_freq
+
+
+def _compute_probably_date(results):
+    ymd_to_freq = _get_date_frequencies(results)
 
     ymd, freq = sorted(ymd_to_freq.items(), key=operator.itemgetter(1)).pop()
     y, m, d = ymd
@@ -271,12 +272,21 @@ def _compute_probably_date(results):
 
 
 def _compute_results(results):
+    # verifica se conjunto de ips é válido (há poucos ips locais)
     results['is_valid'] = {'ips': _analyse_ips_from_content(results)}
-    results['is_valid'].update({'dates': _analyse_dates(results)})
-    results['is_valid'].update({'all':
-        results['is_valid']['ips'] and results['is_valid']['dates']
-    })
+
+    # computa data provável dos dados
     results['probably_date'] = _compute_probably_date(results)
+
+    # analisa se data provável é muito diferente da data indicada no nome do arquivo
+    results['is_valid'].update({'dates': _analyse_dates(results)})
+
+    # atribui valor da validação resultante
+    results['is_valid'].update(
+        {
+            'all': results['is_valid']['ips'] and results['is_valid']['dates']
+        }
+    )
 
 
 def main():
