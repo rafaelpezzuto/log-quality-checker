@@ -246,7 +246,7 @@ def validate(path, validations, sample_size):
     return results
 
 
-def _compute_probably_date(results):
+def _get_date_frequencies(results):
     file_content_dates = results.get('content', {}).get('summary', {}).get('datetimes', {})
 
     ymd_to_freq = {}
@@ -255,6 +255,12 @@ def _compute_probably_date(results):
         if (year, month, day) not in ymd_to_freq:
             ymd_to_freq[(year, month, day)] = 0
         ymd_to_freq[(year, month, day)] += frequency
+
+    return ymd_to_freq
+
+
+def _compute_probably_date(results):
+    ymd_to_freq = _get_date_frequencies(results)
 
     ymd, freq = sorted(ymd_to_freq.items(), key=operator.itemgetter(1)).pop()
     y, m, d = ymd
