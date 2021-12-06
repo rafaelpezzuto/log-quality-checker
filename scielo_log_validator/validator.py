@@ -186,6 +186,7 @@ def _date_is_much_greater(date_object, file_object_date, days_delta):
 def _analyse_dates(results, days_delta=2):
     file_path_date = results.get('path', {}).get('date', '')
     file_content_dates = results.get('content', {}).get('summary', {}).get('datetimes', {})
+    probably_date = results.get('probably_date')
 
     # se não houver contéudo ou a validação não for executada
     if not file_path_date or not file_content_dates:
@@ -197,18 +198,12 @@ def _analyse_dates(results, days_delta=2):
     except ValueError:
         return False
 
-    min_date_object, max_date_object = _get_min_max_dates(file_content_dates)
-
-    if _date_is_much_lower(min_date_object, file_date_object, days_delta):
+    # se a data provável do arquivo é muito menor do que a data indicada no nome do arquivo
+    if _date_is_much_lower(probably_date, file_date_object, days_delta):
         return False
 
-    if _date_is_much_lower(max_date_object, file_date_object, days_delta):
-        return False
-
-    if _date_is_much_greater(min_date_object, file_date_object, days_delta):
-        return False
-
-    if _date_is_much_greater(max_date_object, file_date_object, days_delta):
+    # se a data provável do arquivo é muito maior do que a data indicada no nome do arquivo
+    if _date_is_much_greater(probably_date, file_date_object, days_delta):
         return False
 
     return True
