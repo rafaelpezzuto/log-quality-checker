@@ -272,12 +272,21 @@ def _compute_probably_date(results):
 
 
 def _compute_results(results):
+    # verifica se conjunto de ips é válido (há poucos ips locais)
     results['is_valid'] = {'ips': _analyse_ips_from_content(results)}
-    results['is_valid'].update({'dates': _analyse_dates(results)})
-    results['is_valid'].update({'all':
-        results['is_valid']['ips'] and results['is_valid']['dates']
-    })
+
+    # computa data provável dos dados
     results['probably_date'] = _compute_probably_date(results)
+
+    # analisa se data provável é muito diferente da data indicada no nome do arquivo
+    results['is_valid'].update({'dates': _analyse_dates(results)})
+
+    # atribui valor da validação resultante
+    results['is_valid'].update(
+        {
+            'all': results['is_valid']['ips'] and results['is_valid']['dates']
+        }
+    )
 
 
 def main():
