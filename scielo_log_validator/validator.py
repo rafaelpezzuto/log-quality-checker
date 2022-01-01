@@ -143,7 +143,7 @@ def _analyse_ips_from_content(results):
 
     # se não houver linhas com IP detectado ou a validação não foi executada
     if (remote_ips == 0 and local_ips == 0) or total_lines == 0:
-        return None
+        return False
 
     # computa percentual de IPs remotos em relação ao total de linhas
     percent_remote_ips = float(remote_ips)/float(total_lines) * 100
@@ -183,7 +183,7 @@ def _analyse_dates(results, days_delta=2):
 
     # se não houver contéudo ou a validação não for executada
     if not file_path_date or not file_content_dates:
-        return None
+        return False
 
     # o arquivo é inválido se não for possível obter uma data a partir do nome do arquivo
     try:
