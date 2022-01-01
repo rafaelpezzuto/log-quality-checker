@@ -218,14 +218,12 @@ def _validate_path(path, sample_size=0.1):
 
 
 def _validate_content(path, sample_size=0.1):
-    results = {}
-
-    total_lines = _count_lines(path)
-    sample_lines = int(total_lines * sample_size)
-
-    results['summary'] = _get_content_summary(path, total_lines, sample_lines)
-
-    return results
+    try:
+        total_lines = _count_lines(path)
+        sample_lines = int(total_lines * sample_size)   
+        return {'summary': _get_content_summary(path, total_lines, sample_lines)}
+    except exceptions.TruncatedLogFileError:
+        return {'summary': {'total_lines': {'error': 'Arquivo está truncado'},}}
 
 
 def validate(path, validations, sample_size):
