@@ -130,10 +130,11 @@ def _get_content_summary(path, total_lines, sample_lines):
 
 
 def _count_lines(path):
-    file_data = _open_file(path)
-    total_lines = sum(1 for line in file_data)
-    file_data.close()
-    return total_lines
+    try:
+        with _open_file(path) as fin:
+            return sum(1 for line in fin)
+    except EOFError:
+        raise exceptions.TruncatedLogFileError('Arquivo %s está truncado' % path)
 
 
 def _analyse_ips_from_content(results):
