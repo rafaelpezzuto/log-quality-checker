@@ -3,14 +3,7 @@ from argparse import ArgumentParser
 from datetime import datetime, timedelta
 from gzip import GzipFile
 from ipaddress import ip_address
-from scielo_log_validator.values import (
-    COLLECTION_FILE_NAME_IDENTIFIERS,
-    PATTERN_IP_DATETIME_OTHERS,
-    PATTERN_PAPERBOY,
-    PATTERN_Y_M_D,
-    PATTERN_YMD
-)
-from scielo_log_validator.exceptions import InvalidLogFileMimeError
+from scielo_log_validator import exceptions, values
 
 import magic
 import os
@@ -53,14 +46,14 @@ def _get_mimetype_from_file(path):
 
 
 def _get_collection_from_file_name(path):
-    for file_identifier in COLLECTION_FILE_NAME_IDENTIFIERS:
+    for file_identifier in values.COLLECTION_FILE_NAME_IDENTIFIERS:
         if file_identifier in path:
             return file_identifier
 
 
 def _get_date_from_file_name(path):
     head, tail = os.path.split(path)
-    for pattern in [PATTERN_Y_M_D, PATTERN_YMD]:
+    for pattern in [values.PATTERN_Y_M_D, values.PATTERN_YMD]:
         match = re.search(pattern, tail)
         if match:
             return match.group()
@@ -68,7 +61,7 @@ def _get_date_from_file_name(path):
 
 def _has_file_name_paperboy_format(path):
     head, tail = os.path.split(path)
-    if re.match(PATTERN_PAPERBOY, tail):
+    if re.match(values.PATTERN_PAPERBOY, tail):
         return True
 
 
@@ -80,7 +73,7 @@ def _open_file(path):
     elif file_mime in ('application/text', 'text/plain'):
         return open(path, 'r')
     else:
-        raise InvalidLogFileMimeError('Arquivo de log inválido: ' % path)
+        raise exceptions.InvalidLogFileMimeError('Arquivo de log inválido: ' % path)
 
 
 def _is_ip_local_or_remote(ip):
@@ -111,7 +104,7 @@ def _get_content_summary(path, total_lines, sample_lines):
             line_counter += 1
 
             if line_counter in eval_lines:
-                match = re.search(PATTERN_IP_DATETIME_OTHERS, decoded_line)
+                match = re.search(values.PATTERN_IP_DATETIME_OTHERS, decoded_line)
 
                 if match and len(match.groups()) == 3:
                     ip_value = match.group(1)
@@ -137,10 +130,11 @@ def _get_content_summary(path, total_lines, sample_lines):
 
 
 def _count_lines(path):
-    file_data = _open_file(path)
-    total_lines = sum(1 for line in file_data)
-    file_data.close()
-    return total_lines
+    try:
+        with _open_file(path) as fin:
+            return sum(1 for line in fin)
+    except EOFError:
+        raise exceptions.TruncatedLogFileError('Arquivo %s está truncado' % path)
 
 
 def _analyse_ips_from_content(results):
@@ -150,7 +144,7 @@ def _analyse_ips_from_content(results):
 
     # se não houver linhas com IP detectado ou a validação não foi executada
     if (remote_ips == 0 and local_ips == 0) or total_lines == 0:
-        return None
+        return False
 
     # computa percentual de IPs remotos em relação ao total de linhas
     percent_remote_ips = float(remote_ips)/float(total_lines) * 100
@@ -190,7 +184,7 @@ def _analyse_dates(results, days_delta=2):
 
     # se não houver contéudo ou a validação não for executada
     if not file_path_date or not file_content_dates:
-        return None
+        return False
 
     # o arquivo é inválido se não for possível obter uma data a partir do nome do arquivo
     try:
@@ -224,14 +218,12 @@ def _validate_path(path, sample_size=0.1):
 
 
 def _validate_content(path, sample_size=0.1):
-    results = {}
-
-    total_lines = _count_lines(path)
-    sample_lines = int(total_lines * sample_size)
-
-    results['summary'] = _get_content_summary(path, total_lines, sample_lines)
-
-    return results
+    try:
+        total_lines = _count_lines(path)
+        sample_lines = int(total_lines * sample_size)   
+        return {'summary': _get_content_summary(path, total_lines, sample_lines)}
+    except exceptions.TruncatedLogFileError:
+        return {'summary': {'total_lines': {'error': 'Arquivo está truncado'},}}
 
 
 def validate(path, validations, sample_size):
@@ -262,13 +254,14 @@ def _get_date_frequencies(results):
 def _compute_probably_date(results):
     ymd_to_freq = _get_date_frequencies(results)
 
-    ymd, freq = sorted(ymd_to_freq.items(), key=operator.itemgetter(1)).pop()
-    y, m, d = ymd
-
     try:
+        ymd, freq = sorted(ymd_to_freq.items(), key=operator.itemgetter(1)).pop()
+        y, m, d = ymd
         return datetime(y, m, d)
     except ValueError:
-        print('It was not possible to determine a probably date')
+        return {'error': 'Não foi possível determinar uma data provável'}
+    except IndexError:
+        return {'error': 'Dicionário de datas está vazio'}
 
 
 def _compute_results(results):
