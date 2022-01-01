@@ -3,14 +3,7 @@ from argparse import ArgumentParser
 from datetime import datetime, timedelta
 from gzip import GzipFile
 from ipaddress import ip_address
-from scielo_log_validator.values import (
-    COLLECTION_FILE_NAME_IDENTIFIERS,
-    PATTERN_IP_DATETIME_OTHERS,
-    PATTERN_PAPERBOY,
-    PATTERN_Y_M_D,
-    PATTERN_YMD
-)
-from scielo_log_validator.exceptions import InvalidLogFileMimeError
+from scielo_log_validator import exceptions, values
 
 import magic
 import os
@@ -53,14 +46,14 @@ def _get_mimetype_from_file(path):
 
 
 def _get_collection_from_file_name(path):
-    for file_identifier in COLLECTION_FILE_NAME_IDENTIFIERS:
+    for file_identifier in values.COLLECTION_FILE_NAME_IDENTIFIERS:
         if file_identifier in path:
             return file_identifier
 
 
 def _get_date_from_file_name(path):
     head, tail = os.path.split(path)
-    for pattern in [PATTERN_Y_M_D, PATTERN_YMD]:
+    for pattern in [values.PATTERN_Y_M_D, values.PATTERN_YMD]:
         match = re.search(pattern, tail)
         if match:
             return match.group()
@@ -68,7 +61,7 @@ def _get_date_from_file_name(path):
 
 def _has_file_name_paperboy_format(path):
     head, tail = os.path.split(path)
-    if re.match(PATTERN_PAPERBOY, tail):
+    if re.match(values.PATTERN_PAPERBOY, tail):
         return True
 
 
@@ -80,7 +73,7 @@ def _open_file(path):
     elif file_mime in ('application/text', 'text/plain'):
         return open(path, 'r')
     else:
-        raise InvalidLogFileMimeError('Arquivo de log inválido: ' % path)
+        raise exceptions.InvalidLogFileMimeError('Arquivo de log inválido: ' % path)
 
 
 def _is_ip_local_or_remote(ip):
@@ -111,7 +104,7 @@ def _get_content_summary(path, total_lines, sample_lines):
             line_counter += 1
 
             if line_counter in eval_lines:
-                match = re.search(PATTERN_IP_DATETIME_OTHERS, decoded_line)
+                match = re.search(values.PATTERN_IP_DATETIME_OTHERS, decoded_line)
 
                 if match and len(match.groups()) == 3:
                     ip_value = match.group(1)
