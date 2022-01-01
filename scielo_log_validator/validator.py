@@ -254,13 +254,14 @@ def _get_date_frequencies(results):
 def _compute_probably_date(results):
     ymd_to_freq = _get_date_frequencies(results)
 
-    ymd, freq = sorted(ymd_to_freq.items(), key=operator.itemgetter(1)).pop()
-    y, m, d = ymd
-
     try:
+        ymd, freq = sorted(ymd_to_freq.items(), key=operator.itemgetter(1)).pop()
+        y, m, d = ymd
         return datetime(y, m, d)
     except ValueError:
-        print('It was not possible to determine a probably date')
+        return {'error': 'Não foi possível determinar uma data provável'}
+    except IndexError:
+        return {'error': 'Dicionário de datas está vazio'}
 
 
 def _compute_results(results):
