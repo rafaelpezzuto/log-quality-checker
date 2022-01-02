@@ -72,8 +72,10 @@ def _open_file(path):
         return GzipFile(path, 'rb')
     elif file_mime in ('application/text', 'text/plain'):
         return open(path, 'r')
+    elif file_mime in ('application/x-empty'):
+        raise exceptions.LogFileIsEmptyError('Arquivo %s está vazio' % path)
     else:
-        raise exceptions.InvalidLogFileMimeError('Arquivo de log inválido: ' % path)
+        raise exceptions.InvalidLogFileMimeError('Arquivo %s é inválido' % path)
 
 
 def _is_ip_local_or_remote(ip):
@@ -135,6 +137,10 @@ def _count_lines(path):
             return sum(1 for line in fin)
     except EOFError:
         raise exceptions.TruncatedLogFileError('Arquivo %s está truncado' % path)
+    except exceptions.InvalidLogFileMimeError:
+        raise exceptions.InvalidLogFileMimeError('Arquivo %s é inválido' % path)
+    except exceptions.LogFileIsEmptyError:
+        raise exceptions.LogFileIsEmptyError('Arquivo %s está vazio' % path)
 
 
 def _analyse_ips_from_content(results):
@@ -224,6 +230,10 @@ def _validate_content(path, sample_size=0.1):
         return {'summary': _get_content_summary(path, total_lines, sample_lines)}
     except exceptions.TruncatedLogFileError:
         return {'summary': {'total_lines': {'error': 'Arquivo está truncado'},}}
+    except exceptions.InvalidLogFileMimeError:
+        return {'summary': {'total_lines': {'error': 'Arquivo é inválido'},}}
+    except exceptions.LogFileIsEmptyError:
+        return {'summary': {'total_lines': {'error': 'Arquivo está vazio'},}}
 
 
 def validate(path, validations, sample_size):
