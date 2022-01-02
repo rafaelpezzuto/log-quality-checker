@@ -72,8 +72,10 @@ def _open_file(path):
         return GzipFile(path, 'rb')
     elif file_mime in ('application/text', 'text/plain'):
         return open(path, 'r')
+    elif file_mime in ('application/x-empty'):
+        raise exceptions.LogFileIsEmptyError('Arquivo %s está vazio' % path)
     else:
-        raise exceptions.InvalidLogFileMimeError('Arquivo de log inválido: ' % path)
+        raise exceptions.InvalidLogFileMimeError('Arquivo %s é inválido' % path)
 
 
 def _is_ip_local_or_remote(ip):
