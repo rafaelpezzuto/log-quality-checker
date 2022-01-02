@@ -137,6 +137,10 @@ def _count_lines(path):
             return sum(1 for line in fin)
     except EOFError:
         raise exceptions.TruncatedLogFileError('Arquivo %s está truncado' % path)
+    except exceptions.InvalidLogFileMimeError:
+        raise exceptions.InvalidLogFileMimeError('Arquivo %s é inválido' % path)
+    except exceptions.LogFileIsEmptyError:
+        raise exceptions.LogFileIsEmptyError('Arquivo %s está vazio' % path)
 
 
 def _analyse_ips_from_content(results):
