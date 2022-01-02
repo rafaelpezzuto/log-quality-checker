@@ -230,6 +230,10 @@ def _validate_content(path, sample_size=0.1):
         return {'summary': _get_content_summary(path, total_lines, sample_lines)}
     except exceptions.TruncatedLogFileError:
         return {'summary': {'total_lines': {'error': 'Arquivo está truncado'},}}
+    except exceptions.InvalidLogFileMimeError:
+        return {'summary': {'total_lines': {'error': 'Arquivo é inválido'},}}
+    except exceptions.LogFileIsEmptyError:
+        return {'summary': {'total_lines': {'error': 'Arquivo está vazio'},}}
 
 
 def validate(path, validations, sample_size):
