@@ -111,7 +111,10 @@ def _get_content_summary(path, total_lines, sample_lines):
 
     with _open_file(path) as data:
         for line in data:
-            decoded_line = line.decode().strip() if isinstance(line, bytes) else line.strip()
+            try:
+                decoded_line = line.decode().strip() if isinstance(line, bytes) else line.strip()
+            except UnicodeDecodeError:
+                decoded_line = line.decode('utf-8', errors='ignore').strip() if isinstance(line, bytes) else line.strip()
             line_counter += 1
 
             if line_counter in eval_lines:
