@@ -57,7 +57,13 @@ def _get_date_from_file_name(path):
     for pattern in [values.PATTERN_Y_M_D, values.PATTERN_YMD]:
         match = re.search(pattern, tail)
         if match:
-            return match.group()
+            return _clean_date(match.group())
+
+
+def _clean_date(date_str):
+    if '-' not in date_str and len(date_str) == 8:
+        return date_str[:4] + '-' + date_str[4:6] + '-' + date_str[6:]
+    return date_str
 
 
 def _has_file_name_paperboy_format(path):
