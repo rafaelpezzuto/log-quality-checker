@@ -5,6 +5,7 @@ from gzip import GzipFile
 from ipaddress import ip_address
 from scielo_log_validator import exceptions, values
 
+import bz2
 import magic
 import os
 import operator
@@ -56,7 +57,13 @@ def _get_date_from_file_name(path):
     for pattern in [values.PATTERN_Y_M_D, values.PATTERN_YMD]:
         match = re.search(pattern, tail)
         if match:
-            return match.group()
+            return _clean_date(match.group())
+
+
+def _clean_date(date_str):
+    if '-' not in date_str and len(date_str) == 8:
+        return date_str[:4] + '-' + date_str[4:6] + '-' + date_str[6:]
+    return date_str
 
 
 def _has_file_name_paperboy_format(path):
@@ -70,6 +77,8 @@ def _open_file(path):
 
     if file_mime in ('application/gzip', 'application/x-gzip'):
         return GzipFile(path, 'rb')
+    if file_mime in ('application/x-bzip2',):
+        return bz2.open(path, 'rb',)
     elif file_mime in ('application/text', 'text/plain'):
         return open(path, 'r')
     elif file_mime in ('application/x-empty'):
@@ -102,7 +111,10 @@ def _get_content_summary(path, total_lines, sample_lines):
 
     with _open_file(path) as data:
         for line in data:
-            decoded_line = line.decode().strip() if isinstance(line, bytes) else line.strip()
+            try:
+                decoded_line = line.decode().strip() if isinstance(line, bytes) else line.strip()
+            except UnicodeDecodeError:
+                decoded_line = line.decode('utf-8', errors='ignore').strip() if isinstance(line, bytes) else line.strip()
             line_counter += 1
 
             if line_counter in eval_lines:
