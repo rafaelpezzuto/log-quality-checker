@@ -5,6 +5,7 @@ from gzip import GzipFile
 from ipaddress import ip_address
 from scielo_log_validator import exceptions, values
 
+import bz2
 import magic
 import os
 import operator
@@ -70,6 +71,8 @@ def _open_file(path):
 
     if file_mime in ('application/gzip', 'application/x-gzip'):
         return GzipFile(path, 'rb')
+    if file_mime in ('application/x-bzip2',):
+        return bz2.open(path, 'rb',)
     elif file_mime in ('application/text', 'text/plain'):
         return open(path, 'r')
     elif file_mime in ('application/x-empty'):
