@@ -107,7 +107,11 @@ def _get_content_summary(path, total_lines, sample_lines):
     datetimes = {}
     invalid_lines = 0
 
-    eval_lines = set(range(0, total_lines, int(total_lines/sample_lines)))
+    try:
+        eval_lines = set(range(0, total_lines, int(total_lines/sample_lines)))
+    except ZeroDivisionError:
+        raise exceptions.LogFileIsEmptyError('Arquivo %s está vazio' % path)
+
     line_counter = 0
 
     with _open_file(path) as data:
