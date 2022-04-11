@@ -13,6 +13,7 @@ import re
 
 
 MIN_ACCEPTABLE_PERCENT_OF_REMOTE_IPS = float(os.environ.get('MIN_ACCEPTABLE_PERCENT_OF_REMOTE_IPS', '10'))
+MIN_NUMBER_OF_SAMPLE_LINES = int(os.environ.get('MIN_NUMBER_OF_SAMPLE_LINES', '1000'))
 
 
 app_msg = '''
@@ -238,6 +239,8 @@ def _validate_path(path, sample_size=0.1):
 def _validate_content(path, sample_size=0.1):
     try:
         total_lines = _count_lines(path)
+        if total_lines <= MIN_NUMBER_OF_SAMPLE_LINES:
+            sample_size = 1.0
         sample_lines = int(total_lines * sample_size)   
         return {'summary': _get_content_summary(path, total_lines, sample_lines)}
     except exceptions.TruncatedLogFileError:
