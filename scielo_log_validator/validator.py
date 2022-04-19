@@ -131,11 +131,15 @@ def _get_content_summary(path, total_lines, sample_lines):
                     ips[ip_type] += 1
 
                     matched_datetime = match.group(2)
-                    year, month, day, hour = _extract_year_month_day_hour(matched_datetime)
+                    try:
+                        year, month, day, hour = _extract_year_month_day_hour(matched_datetime)
 
-                    if (year, month, day, hour) not in datetimes:
-                        datetimes[(year, month, day, hour)] = 0
-                    datetimes[(year, month, day, hour)] += 1
+                        if (year, month, day, hour) not in datetimes:
+                            datetimes[(year, month, day, hour)] = 0
+                        datetimes[(year, month, day, hour)] += 1
+                        
+                    except ValueError:
+                        invalid_lines += 1
 
                 else:
                     invalid_lines += 1
