@@ -246,7 +246,8 @@ def _validate_path(path, sample_size=0.1):
         (_get_date_from_file_name, 'date'),
         (_get_collection_from_file_name, 'collection'),
         (_has_file_name_paperboy_format, 'paperboy'),
-        (_get_mimetype_from_file, 'mimetype')
+        (_get_mimetype_from_file, 'mimetype'),
+        (_get_extension, 'extension'),
     ]:
         results[func_name] = func_impl(path)
 
