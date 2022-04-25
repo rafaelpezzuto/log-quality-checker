@@ -53,6 +53,15 @@ def _get_collection_from_file_name(path):
             return file_identifier
 
 
+def _get_extension(path):
+    try:
+        file = os.path.basename(path)
+        filename, fileext = os.path.splitext(file)
+        return fileext
+    except:
+        raise exceptions.LogFileExtensionUndetectable('Não foi possível extrair extensão de %s' % path)
+
+
 def _get_date_from_file_name(path):
     head, tail = os.path.split(path)
     for pattern in [values.PATTERN_Y_M_D, values.PATTERN_YMD]:
@@ -237,7 +246,8 @@ def _validate_path(path, sample_size=0.1):
         (_get_date_from_file_name, 'date'),
         (_get_collection_from_file_name, 'collection'),
         (_has_file_name_paperboy_format, 'paperboy'),
-        (_get_mimetype_from_file, 'mimetype')
+        (_get_mimetype_from_file, 'mimetype'),
+        (_get_extension, 'extension'),
     ]:
         results[func_name] = func_impl(path)
 
