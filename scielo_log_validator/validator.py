@@ -53,6 +53,15 @@ def _get_collection_from_file_name(path):
             return file_identifier
 
 
+def _get_extension(path):
+    try:
+        file = os.path.basename(path)
+        filename, fileext = os.path.splitext(file)
+        return fileext
+    except:
+        raise exceptions.LogFileExtensionUndetectable('Não foi possível extrair extensão de %s' % path)
+
+
 def _get_date_from_file_name(path):
     head, tail = os.path.split(path)
     for pattern in [values.PATTERN_Y_M_D, values.PATTERN_YMD]:
