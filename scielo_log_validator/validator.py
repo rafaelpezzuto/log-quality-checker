@@ -213,7 +213,7 @@ def _date_is_much_greater(date_object, file_object_date, days_delta):
         return True
 
 
-def _analyse_dates(results, days_delta=2):
+def _analyse_dates(results, days_delta=5):
     file_path_date = results.get('path', {}).get('date', '')
     file_content_dates = results.get('content', {}).get('summary', {}).get('datetimes', {})
     probably_date = results.get('probably_date')
