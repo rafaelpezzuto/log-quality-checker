@@ -134,12 +134,12 @@ def _get_content_summary(path, total_lines, sample_lines):
             if line_counter in eval_lines:
                 match = re.search(values.PATTERN_IP_DATETIME_OTHERS, decoded_line)
 
-                if match and len(match.groups()) == 3:
-                    ip_value = match.group(1)
+                if match and len(match.groups()) == 5:
+                    ip_value = match.group(2)
                     ip_type = _is_ip_local_or_remote(ip_value)
                     ips[ip_type] += 1
 
-                    matched_datetime = match.group(2)
+                    matched_datetime = match.group(3)
                     try:
                         year, month, day, hour = _extract_year_month_day_hour(matched_datetime)
 
@@ -213,7 +213,7 @@ def _date_is_much_greater(date_object, file_object_date, days_delta):
         return True
 
 
-def _analyse_dates(results, days_delta=2):
+def _analyse_dates(results, days_delta=5):
     file_path_date = results.get('path', {}).get('date', '')
     file_content_dates = results.get('content', {}).get('summary', {}).get('datetimes', {})
     probably_date = results.get('probably_date')
