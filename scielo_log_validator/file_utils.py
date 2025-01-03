@@ -132,3 +132,18 @@ def extract_date_from_path(path):
         if match:
             return date_utils.clean_date(match.group())
 
+
+def has_paperboy_format(path):
+    """
+    Checks if the given file path has a filename that matches the Paperboy format.
+
+    Args:
+        path (str): The file path to check.
+
+    Returns:
+        bool: True if the filename matches the Paperboy format, False otherwise.
+    """
+    _, tail = os.path.split(path)
+    if re.match(values.PATTERN_PAPERBOY, tail):
+        return True
+    return False

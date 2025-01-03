@@ -48,3 +48,9 @@ class TestFileUtils(unittest.TestCase):
         path_to_non_existing_file = '/path/to/nothing'
         log_file_date = file_utils.extract_date_from_path(path_to_non_existing_file)
         self.assertIsNone(log_file_date)
+
+    def test_has_paperboy_format_results_true(self):
+        self.assertTrue(file_utils.has_paperboy_format(self.log_file))
+
+    def test_has_paperboy_format_results_false(self):
+        self.assertFalse(file_utils.has_paperboy_format(self.log_file_invalid_name))
