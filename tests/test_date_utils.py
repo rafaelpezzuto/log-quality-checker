@@ -30,3 +30,7 @@ class TestDateUtils(unittest.TestCase):
         self.assertEqual(min_date, date_utils.datetime(2020, 12, 25))
         self.assertEqual(max_date, date_utils.datetime(2022, 1, 1))
 
+    def test_date_is_significantly_earlier(self):
+        date_object = date_utils.datetime(2020, 1, 1)
+        reference_date = date_utils.datetime(2020, 1, 10)
+        self.assertTrue(date_utils.date_is_significantly_earlier(date_object, reference_date, 5))

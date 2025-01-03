@@ -44,3 +44,18 @@ def extract_min_max_dates(dates):
     """
     return datetime(*min(dates)), datetime(*max(dates))
 
+def date_is_significantly_earlier(date_object, reference_date, days_delta):
+    """
+    Check if the given date_object is significantly earlier than reference_date by a specified number of days.
+
+    Args:
+        date_object (datetime): The date to be compared.
+        reference_date (datetime): The reference date to compare against.
+        days_delta (int): The number of days to determine the threshold.
+
+    Returns:
+        bool: True if date_object is earlier than reference_date by more than days_delta days, False otherwise.
+    """
+    if date_object < reference_date - timedelta(days=days_delta):
+        return True
+
