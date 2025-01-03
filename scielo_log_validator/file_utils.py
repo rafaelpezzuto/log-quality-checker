@@ -43,7 +43,12 @@ def open_file(path, mime_handlers=DEFAULT_MIME_HANDLERS, buffer_size=2048):
     if file_mime == 'application/x-empty':
         raise exceptions.LogFileIsEmptyError('File %s is empty' % path)
 
-    return mime_handlers[file_mime](path, 'rb' if 'application' in file_mime else 'r')
+    if file_mime in ('application/gzip', 'application/x-gzip'):
+        open_mode = 'rb'
+    else:
+        open_mode = 'r'
+    
+    return mime_handlers[file_mime](path, open_mode)
 
 
 def extract_mime_from_path(path, buffer_size=2048):
