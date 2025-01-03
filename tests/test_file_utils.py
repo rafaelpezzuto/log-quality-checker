@@ -18,3 +18,7 @@ class TestFileUtils(unittest.TestCase):
         gzip_mimes = ['application/gzip', 'application/x-gzip']
         mimetype = file_utils.extract_mime_from_path(self.log_file)
         self.assertIn(mimetype, gzip_mimes)
+
+    def test_extract_collection_from_path_is_valid(self):
+        log_file_collection = file_utils.extract_collection_from_path(self.log_file)
+        self.assertEqual(log_file_collection, 'wid')

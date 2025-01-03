@@ -66,3 +66,29 @@ def extract_mime_from_path(path, buffer_size=2048):
         magic_code = mime.from_buffer(fin.read(buffer_size))
         return magic_code
 
+
+def extract_collection_from_path(path, collection_identifiers=None):
+    """
+    Extracts the collection identifier from the given file path.
+
+    This function iterates over a dictionary of collection file name identifiers
+    and checks if any of these identifiers are present in the provided file path.
+    If a match is found, the corresponding collection ID is returned.
+
+    Args:
+        path (str): The file path to be checked for collection identifiers.
+        collection_identifiers (dict, optional): A dictionary where keys are file name identifiers 
+                                                 and values are collection IDs. 
+                                                 If not provided, defaults to values.COLLECTION_FILE_NAME_IDENTIFIERS.
+
+    Returns:
+        str: The collection identifier if found in the file path, otherwise None.
+    """
+    if collection_identifiers is None:
+        collection_identifiers = values.COLLECTION_FILE_NAME_IDENTIFIERS
+
+    for file_identifier, collection_id in collection_identifiers.items():
+        if file_identifier in path:
+            return collection_id
+    return None
+
