@@ -1,22 +1,24 @@
 # -*- coding: UTF-8 -*-
 from argparse import ArgumentParser
-from datetime import datetime, timedelta
-from gzip import GzipFile
-from ipaddress import ip_address
-from scielo_log_validator import exceptions, values
+from datetime import datetime
 
-import bz2
-import magic
 import os
 import operator
 import re
 
+from ipaddress import ip_address
 
+from scielo_log_validator import date_utils, exceptions, file_utils, values
+
+
+# Minimum acceptable percentage of remote IPs to consider the log file valid
 MIN_ACCEPTABLE_PERCENT_OF_REMOTE_IPS = float(os.environ.get('MIN_ACCEPTABLE_PERCENT_OF_REMOTE_IPS', '10'))
+
+# Minimum number of sample lines to be considered in the content validation
 MIN_NUMBER_OF_SAMPLE_LINES = int(os.environ.get('MIN_NUMBER_OF_SAMPLE_LINES', '1000'))
 
-
-app_msg = '''
+# Default message for the application
+COMMAND_LINE_SCRIPT_MESSAGE = '''
 SciELO Log Validator
 
 This script is responsible for validating log usage records obtained from the SciELO Network Apache Servers.
