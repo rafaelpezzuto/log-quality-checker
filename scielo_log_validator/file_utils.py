@@ -92,3 +92,23 @@ def extract_collection_from_path(path, collection_identifiers=None):
             return collection_id
     return None
 
+
+def extract_file_extension_from_path(path):
+    """
+    Extracts the file extension from a given file path.
+
+    Args:
+        path (str): The file path from which to extract the extension.
+
+    Returns:
+        str: The file extension, including the leading dot (e.g., '.txt').
+
+    Raises:
+        LogFileExtensionUndetectable: If the file extension cannot be determined.
+    """
+    file = os.path.basename(path)
+    _, extension = os.path.splitext(file)
+    if extension:
+        return extension
+    raise exceptions.LogFileExtensionUndetectable('Could not extract extension from %s' % path)
+
