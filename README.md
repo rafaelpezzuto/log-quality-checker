@@ -79,15 +79,15 @@ __Python library__
 from scielo_log_validator import validator
 
 # Validate a single file
-result = validator.pipeline_validate('/home/user/2022-03-01_scielo-br.log.gz', sample_size=1000, apply_path_validation=True, apply_content_validation=True)
+result = validator.pipeline_validate('/home/user/2022-03-01_scielo-br.log.gz', sample_size=0.25, apply_path_validation=True, apply_content_validation=True)
 
 # Validate all files in a directory
 for root, _, files in os.walk('/home/user'):
     for file in files:
         file_path = os.path.join(root, file)
         results = validator.pipeline_validate(
-            file_path, 
-            0.1,
+            path=file_path, 
+            sample_size=0.1,
             apply_path_validation=True,
             apply_content_validation=True
         )
