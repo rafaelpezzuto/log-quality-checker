@@ -359,6 +359,10 @@ def validate_content(path, sample_size=0.1, buffer_size=2048, min_lines=MIN_NUMB
         exceptions.InvalidLogFileMimeError: If the log file has an invalid MIME type.
         exceptions.LogFileIsEmptyError: If the log file is empty.
     """
+    # Ensure that the sample size is within the valid range
+    if sample_size > 1.0 or sample_size < 0.001:
+        sample_size = 1.0
+
     try:
         total_lines = get_total_lines(path=path, buffer_size=buffer_size)
         if total_lines <= min_lines:
