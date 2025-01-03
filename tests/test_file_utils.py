@@ -34,3 +34,17 @@ class TestFileUtils(unittest.TestCase):
     def test_extract_file_extension_from_path_raises_exception(self):
         with self.assertRaises(Exception):
             file_utils.extract_file_extension_from_path('/path/to/file')
+
+    def test_extract_date_from_path_pattern_yyyy_mm_dd(self):
+        log_file_date = file_utils.extract_date_from_path(self.log_file)
+        self.assertEqual(log_file_date, '2024-02-20')
+
+    def test_extract_file_date_from_path_pattern_yyyymmdd(self):
+        log_file_name = '20240220_caribbean.scielo.org.1.log.gz'
+        log_file_date = file_utils.extract_date_from_path(log_file_name)
+        self.assertEqual(log_file_date, '2024-02-20')
+
+    def test_extract_file_date_from_path_is_invalid(self):
+        path_to_non_existing_file = '/path/to/nothing'
+        log_file_date = file_utils.extract_date_from_path(path_to_non_existing_file)
+        self.assertIsNone(log_file_date)

@@ -112,3 +112,23 @@ def extract_file_extension_from_path(path):
         return extension
     raise exceptions.LogFileExtensionUndetectable('Could not extract extension from %s' % path)
 
+
+def extract_date_from_path(path):
+    """
+    Extracts a date from a file name based on predefined patterns.
+
+    Args:
+        path (str): The file path from which to extract the date.
+
+    Returns:
+        str: The extracted date in a cleaned format if a pattern matches, otherwise None.
+
+    Raises:
+        None
+    """
+    _, tail = os.path.split(path)
+    for pattern in [values.PATTERN_Y_M_D, values.PATTERN_YMD]:
+        match = re.search(pattern, tail)
+        if match:
+            return date_utils.clean_date(match.group())
+
