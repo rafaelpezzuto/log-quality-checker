@@ -60,26 +60,37 @@ options:
   -h, --help            show this help message and exit
   -p PATH, --path PATH  File or directory to be checked
   -s SAMPLE_SIZE, --sample_size SAMPLE_SIZE
-                        Sample size to be checked
+              Sample size to be checked (must be between 0 and 1)
   --apply_path_validation
                         Indicates whether to apply path validation
   --apply_content_validation
                         Indicates whether to apply content validation
 
-# Here is an example of execution:
+# Here is an example of execution for a single file:
 log_validator -p /home/user/2022-03-01_scielo-br.log.gz --apply_path_validation --apply_content_validation
+
+# Here is an example of execution for an entire directory:
+log_validator -p /home/user --apply_path_validation --apply_content_validation
 ```
 
 __Python library__
 
 ```python
-from scielo_log_validator import validate
+from scielo_log_validator import validator
 
 # Validate a single file
-validate('/home/user/2022-03-01_scielo-br.log.gz')
+result = validator.pipeline_validate('/home/user/2022-03-01_scielo-br.log.gz', sample_size=1000, apply_path_validation=True, apply_content_validation=True)
 
 # Validate all files in a directory
-validate('/home/user/', sample_size=1000, apply_path_validation=True, apply_content_validation=True)
+for root, _, files in os.walk('/home/user'):
+    for file in files:
+        file_path = os.path.join(root, file)
+        results = validator.pipeline_validate(
+            file_path, 
+            0.1,
+            apply_path_validation=True,
+            apply_content_validation=True
+        )
 ```
 
 __Result format__
