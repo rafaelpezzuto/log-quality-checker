@@ -286,6 +286,10 @@ def validate_date_consistency(results, days_delta=5):
     Returns:
         bool: True if the dates are not significantly different, False otherwise.
     """
+    # Ensure that the days delta is positive
+    if days_delta < 0:
+        days_delta = 5
+
     file_path_date = results.get('path', {}).get('date', '')
     file_content_dates = results.get('content', {}).get('summary', {}).get('datetimes', {})
     probably_date = results.get('probably_date')
@@ -382,7 +386,7 @@ def pipe_validate(path, sample_size=0.1, apply_path_validation=True, apply_conte
 
     results['probably_date'] = get_probably_date(results)
 
-    results['is_valid'].update({'dates': validate_date_consistency(results)})
+    results['is_valid'].update({'dates': validate_date_consistency(results, days_delta=days_delta)})
 
     results['is_valid'].update({'all': results['is_valid']['ips'] and results['is_valid']['dates']})
 
@@ -395,6 +399,7 @@ def main():
     parser.add_argument('-p', '--path', help='File or directory to be checked', required=True)
     parser.add_argument('-s', '--sample_size', help='Sample size to be checked (must be between 0 and 1)', default=0.1, type=float)
     parser.add_argument('-b', '--buffer_size', help='Buffer size for file type checking', default=2048, type=int)
+    parser.add_argument('-d', '--days_delta', help='Number of days to determine the threshold for significant date difference', default=5, type=int)
     parser.add_argument('--apply_path_validation', help='Indicates whether to apply path validation', action='store_true')
     parser.add_argument('--apply_content_validation', help='Indicates whether to apply content validation', action='store_true')
 
@@ -412,6 +417,7 @@ def main():
             path=params.path, 
             sample_size=params.sample_size,
             buffer_size=params.buffer_size,
+            days_delta=params.days_delta,
             apply_path_validation=params.apply_path_validation,
             apply_content_validation=params.apply_content_validation)
         print(params.path)
@@ -426,6 +432,7 @@ def main():
                     path=file_path, 
                     sample_size=params.sample_size,
                     buffer_size=params.buffer_size,
+                    days_delta=params.days_delta,
                     apply_path_validation=params.apply_path_validation,
                     apply_content_validation=params.apply_content_validation)
                 print(file_path)
