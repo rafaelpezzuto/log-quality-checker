@@ -16,7 +16,7 @@ tests_require = [
 
 setuptools.setup(
     name="scielo-log-validator",
-    version="0.3.0",
+    version="0.4.0",
     author="SciELO",
     author_email="scielo-dev@googlegroups.com",
     description="",
@@ -42,4 +42,9 @@ setuptools.setup(
         "Programming Language :: Python :: 2 :: Only",
         "Operating System :: OS Independent",
     ],
+    entry_points={
+        'console_scripts': [
+            'log_validator=scielo_log_validator.validator:main',
+        ],
+    },
 )
