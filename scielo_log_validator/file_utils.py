@@ -19,7 +19,7 @@ DEFAULT_MIME_HANDLERS = {
 }
 
 
-def open_file(path, mime_handlers=DEFAULT_MIME_HANDLERS):
+def open_file(path, mime_handlers=DEFAULT_MIME_HANDLERS, buffer_size=2048):
     """
     Opens a file and returns its content based on its MIME type.
 
@@ -35,7 +35,7 @@ def open_file(path, mime_handlers=DEFAULT_MIME_HANDLERS):
     Returns:
         object: The content of the file as processed by the appropriate handler function.
     """
-    file_mime = extract_mime_from_path(path)
+    file_mime = extract_mime_from_path(path, buffer_size)
 
     if file_mime not in mime_handlers:
         raise exceptions.InvalidLogFileMimeError('File %s is invalid' % path)

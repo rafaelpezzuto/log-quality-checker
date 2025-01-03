@@ -133,12 +133,13 @@ def get_probably_date(results):
         return {'error': 'Date dictionary is empty'}
 
 
-def get_total_lines(path):
+def get_total_lines(path, buffer_size=2048):
     """
     Counts the number of lines in a file.
 
     Args:
         path (str): The path to the file.
+        buffer_size (int, optional): The buffer size for reading the file. Defaults to 2048.
 
     Returns:
         int: The number of lines in the file.
@@ -149,7 +150,7 @@ def get_total_lines(path):
         exceptions.LogFileIsEmptyError: If the file is empty.
     """
     try:
-        with file_utils.open_file(path) as fin:
+        with file_utils.open_file(path=path, buffer_size=buffer_size) as fin:
             return sum(1 for _ in fin)
     except EOFError:
         raise exceptions.TruncatedLogFileError('Arquivo %s está truncado' % path)
@@ -338,7 +339,7 @@ def validate_path_name(path):
     return results
 
 
-def validate_content(path, sample_size=0.1, min_lines=MIN_NUMBER_OF_SAMPLE_LINES):
+def validate_content(path, sample_size=0.1, buffer_size=2048, min_lines=MIN_NUMBER_OF_SAMPLE_LINES):
     """
     Validates the content of a log file by analyzing a sample of its lines.
 
@@ -355,7 +356,7 @@ def validate_content(path, sample_size=0.1, min_lines=MIN_NUMBER_OF_SAMPLE_LINES
         exceptions.LogFileIsEmptyError: If the log file is empty.
     """
     try:
-        total_lines = get_total_lines(path)
+        total_lines = get_total_lines(path=path, buffer_size=buffer_size)
         if total_lines <= min_lines:
             sample_size = 1.0
         sample_lines = int(total_lines * sample_size)
@@ -375,7 +376,7 @@ def pipe_validate(path, sample_size=0.1, apply_path_validation=True, apply_conte
         results['path'] = validate_path_name(path)
     
     if apply_content_validation:
-        results['content'] = validate_content(path, sample_size)
+        results['content'] = validate_content(path=path, sample_size=sample_size, buffer_size=buffer_size)
 
     results['is_valid'] = {'ips': validate_ip_distribution(results)}
 
@@ -392,7 +393,8 @@ def main():
     parser = ArgumentParser()
 
     parser.add_argument('-p', '--path', help='File or directory to be checked', required=True)
-    parser.add_argument('-s', '--sample_size', help='Sample size to be checked', default=0.1, type=float)
+    parser.add_argument('-s', '--sample_size', help='Sample size to be checked (must be between 0 and 1)', default=0.1, type=float)
+    parser.add_argument('-b', '--buffer_size', help='Buffer size for file type checking', default=2048, type=int)
     parser.add_argument('--apply_path_validation', help='Indicates whether to apply path validation', action='store_true')
     parser.add_argument('--apply_content_validation', help='Indicates whether to apply content validation', action='store_true')
 
@@ -406,9 +408,10 @@ def main():
 
     if execution_mode == 'validate-file':
         # Validate a single file
-        results = pipe_validate(
-            params.path, 
-            params.sample_size,
+        results = pipeline_validate(
+            path=params.path, 
+            sample_size=params.sample_size,
+            buffer_size=params.buffer_size,
             apply_path_validation=params.apply_path_validation,
             apply_content_validation=params.apply_content_validation)
         print(params.path)
@@ -419,9 +422,10 @@ def main():
         for root, _, files in os.walk(params.path):
             for file in files:
                 file_path = os.path.join(root, file)
-                results = pipe_validate(
-                    file_path, 
-                    params.sample_size,
+                results = pipeline_validate(
+                    path=file_path, 
+                    sample_size=params.sample_size,
+                    buffer_size=params.buffer_size,
                     apply_path_validation=params.apply_path_validation,
                     apply_content_validation=params.apply_content_validation)
                 print(file_path)
