@@ -28,92 +28,153 @@ A validation is composed of two main aspects as follows:
 '''
 
 
-def _get_execution_mode(path):
+def get_execution_mode(path):
+    """
+    Determines the execution mode based on the given path.
+
+    Args:
+        path (str): The path to check.
+
+    Returns:
+        str: 'validate-file' if the path is a file, 'validate-directory' if the path is a directory.
+
+    Raises:
+        FileNotFoundError: If the path does not exist.
+    """
     if os.path.exists(path):
         if os.path.isfile(path):
             return 'validate-file'
-    else:
-        raise FileNotFoundError()
-    return 'validate-directory'
+        if os.path.isdir(path):
+            return 'validate-directory'
+    raise FileNotFoundError()
 
 
-def _get_validation_functions(check_file_name_only):
-    if check_file_name_only:
-        return [_validate_path]
-    return [_validate_path, _validate_content]
+def get_ip_type(ip):
+    """
+    Classifies an IP address as local or remote.
 
+    Args:
+        ip (str): The IP address to be checked.
 
-def _get_mimetype_from_file(path):
-    with open(path, 'rb') as fin:
-        magic_code = magic.from_buffer(fin.read(2048), mime=True)
-        return magic_code
-
-
-def _get_collection_from_file_name(path):
-    for file_identifier in values.COLLECTION_FILE_NAME_IDENTIFIERS:
-        if file_identifier in path:
-            return file_identifier
-
-
-def _get_extension(path):
-    try:
-        file = os.path.basename(path)
-        filename, fileext = os.path.splitext(file)
-        return fileext
-    except:
-        raise exceptions.LogFileExtensionUndetectable('Não foi possível extrair extensão de %s' % path)
-
-
-def _get_date_from_file_name(path):
-    head, tail = os.path.split(path)
-    for pattern in [values.PATTERN_Y_M_D, values.PATTERN_YMD]:
-        match = re.search(pattern, tail)
-        if match:
-            return _clean_date(match.group())
-
-
-def _clean_date(date_str):
-    if '-' not in date_str and len(date_str) == 8:
-        return date_str[:4] + '-' + date_str[4:6] + '-' + date_str[6:]
-    return date_str
-
-
-def _has_file_name_paperboy_format(path):
-    head, tail = os.path.split(path)
-    if re.match(values.PATTERN_PAPERBOY, tail):
-        return True
-
-
-def _open_file(path):
-    file_mime = _get_mimetype_from_file(path)
-
-    if file_mime in ('application/gzip', 'application/x-gzip'):
-        return GzipFile(path, 'rb')
-    if file_mime in ('application/x-bzip2',):
-        return bz2.open(path, 'rb',)
-    elif file_mime in ('application/text', 'text/plain'):
-        return open(path, 'r')
-    elif file_mime in ('application/x-empty'):
-        raise exceptions.LogFileIsEmptyError('Arquivo %s está vazio' % path)
-    else:
-        raise exceptions.InvalidLogFileMimeError('Arquivo %s é inválido' % path)
-
-
-def _is_ip_local_or_remote(ip):
+    Returns:
+        str: 'local' if the IP address is local, 'remote' if the IP address is global, 'unknown' otherwise.
+    """
     ipa = ip_address(ip)
     if ipa.is_global:
         return 'remote'
-    return 'local'
+    elif ipa.is_private or ipa.is_loopback or ipa.is_link_local:
+        return 'local'
+    return 'unknown'
 
 
-def _extract_year_month_day_hour(log_date):
-    # descarta offset
+def get_year_month_day_hour_from_date_str(log_date):
+    """
+    Extracts the year, month, day, and hour from a log date string.
+
+    Args:
+        log_date (str): The log date string in the format 'dd/Mon/YYYY:HH:MM:SS [offset]'.
+
+    Returns:
+        tuple: A tuple containing the year (int), month (int), day (int), and hour (int).
+
+    Example:
+        >>> extract_year_month_day_hour('12/Mar/2023:14:22:30 +0000')
+        (2023, 3, 12, 14)
+    """
+    # Discard offset
     log_date = log_date.split(' ')[0]
     dt = datetime.strptime(log_date, '%d/%b/%Y:%H:%M:%S')
     return dt.year, dt.month, dt.day, dt.hour
 
 
-def _get_content_summary(path, total_lines, sample_lines):
+def get_date_frequencies(results):
+    """
+    Gets the date frequencies from the content analysis results.
+
+    Args:
+        results (dict): The results dictionary containing the dates from the file content.
+
+    Returns:
+        dict: A dictionary where the keys are tuples (year, month, day) and the values are the frequencies of those dates.
+    """
+    file_content_dates = results.get('content', {}).get('summary', {}).get('datetimes', {})
+
+    ymd_to_freq = {}
+    for k, frequency in file_content_dates.items():
+        year, month, day, _ = k
+        if (year, month, day) not in ymd_to_freq:
+            ymd_to_freq[(year, month, day)] = 0
+        ymd_to_freq[(year, month, day)] += frequency
+
+    return ymd_to_freq
+
+
+def get_probably_date(results):
+    """
+    Computes the most probable date from the content analysis results.
+
+    Args:
+        results (dict): The results dictionary containing the dates from the file content.
+
+    Returns:
+        datetime: The most probable date based on the frequency of occurrences.
+        dict: An error message if the date cannot be determined.
+    """
+    ymd_to_freq = get_date_frequencies(results)
+
+    try:
+        # Sort the dates by frequency and get the most frequent one
+        ymd, _ = sorted(ymd_to_freq.items(), key=operator.itemgetter(1)).pop()
+        y, m, d = ymd
+        return datetime(y, m, d)
+    except ValueError:
+        return {'error': 'Could not determine a probable date'}
+    except IndexError:
+        return {'error': 'Date dictionary is empty'}
+
+
+def get_total_lines(path):
+    """
+    Counts the number of lines in a file.
+
+    Args:
+        path (str): The path to the file.
+
+    Returns:
+        int: The number of lines in the file.
+
+    Raises:
+        exceptions.TruncatedLogFileError: If the file is truncated.
+        exceptions.InvalidLogFileMimeError: If the file has an invalid MIME type.
+        exceptions.LogFileIsEmptyError: If the file is empty.
+    """
+    try:
+        with file_utils.open_file(path) as fin:
+            return sum(1 for _ in fin)
+    except EOFError:
+        raise exceptions.TruncatedLogFileError('Arquivo %s está truncado' % path)
+    except exceptions.InvalidLogFileMimeError:
+        raise exceptions.InvalidLogFileMimeError('Arquivo %s é inválido' % path)
+    except exceptions.LogFileIsEmptyError:
+        raise exceptions.LogFileIsEmptyError('Arquivo %s está vazio' % path)
+
+
+def analyze_log_content(path, total_lines, sample_lines):
+    """
+    Analyzes a log file and provides a summary of its content.
+    Args:
+        path (str): The file path to the log file.
+        total_lines (int): The total number of lines in the log file.
+        sample_lines (int): The number of lines to sample for analysis.
+    Returns:
+        dict: A dictionary containing the following keys:
+            - 'ips' (dict): A dictionary with counts of 'local' and 'remote' IP addresses.
+            - 'datetimes' (dict): A dictionary with counts of occurrences of each datetime (year, month, day, hour).
+            - 'invalid_lines' (int): The number of lines that could not be parsed.
+            - 'total_lines' (int): The total number of lines in the log file.
+    Raises:
+        exceptions.LogFileIsEmptyError: If the log file is empty.
+    """
     ips = {'local': 0, 'remote': 0}
     datetimes = {}
     invalid_lines = 0
@@ -125,7 +186,7 @@ def _get_content_summary(path, total_lines, sample_lines):
 
     line_counter = 0
 
-    with _open_file(path) as data:
+    with file_utils.open_file(path) as data:
         for line in data:
             try:
                 decoded_line = line.decode().strip() if isinstance(line, bytes) else line.strip()
@@ -138,12 +199,12 @@ def _get_content_summary(path, total_lines, sample_lines):
 
                 if match and len(match.groups()) == 5:
                     ip_value = match.group(2)
-                    ip_type = _is_ip_local_or_remote(ip_value)
+                    ip_type = get_ip_type(ip_value)
                     ips[ip_type] += 1
 
                     matched_datetime = match.group(3)
                     try:
-                        year, month, day, hour = _extract_year_month_day_hour(matched_datetime)
+                        year, month, day, hour = get_year_month_day_hour_from_date_str(matched_datetime)
 
                         if (year, month, day, hour) not in datetimes:
                             datetimes[(year, month, day, hour)] = 0
@@ -163,196 +224,205 @@ def _get_content_summary(path, total_lines, sample_lines):
     }
 
 
-def _count_lines(path):
-    try:
-        with _open_file(path) as fin:
-            return sum(1 for line in fin)
-    except EOFError:
-        raise exceptions.TruncatedLogFileError('Arquivo %s está truncado' % path)
-    except exceptions.InvalidLogFileMimeError:
-        raise exceptions.InvalidLogFileMimeError('Arquivo %s é inválido' % path)
-    except exceptions.LogFileIsEmptyError:
-        raise exceptions.LogFileIsEmptyError('Arquivo %s está vazio' % path)
+def validate_ip_distribution(results):
+    """
+    Validates the distribution of remote and local IPs in the given results.
 
+    This function checks the percentage of remote and local IPs relative to the total number of lines.
+    It returns True if the percentage of remote IPs is higher than the percentage of local IPs or if
+    the percentage of remote IPs exceeds a predefined minimum acceptable percentage.
 
-def _analyse_ips_from_content(results):
+    Args:
+        results (dict): A dictionary containing the results with the following structure:
+            {
+                'content': {
+                    'summary': {
+                        'ips': {
+                            'remote': int,
+                            'local': int
+                        },
+                        'total_lines': int
+                    }
+                }
+            }
+
+    Returns:
+        bool: True if the distribution of IPs is valid, False otherwise.
+    """
     remote_ips = results.get('content', {}).get('summary', {}).get('ips', {}).get('remote', 0)
     local_ips = results.get('content', {}).get('summary', {}).get('ips', {}).get('local', 0)
     total_lines = results.get('content', {}).get('summary', {}).get('total_lines', 0)
 
-    # se não houver linhas com IP detectado ou a validação não foi executada
+    # If there are no lines with detected IPs or the validation was not executed
     if (remote_ips == 0 and local_ips == 0) or total_lines == 0:
         return False
 
-    # computa percentual de IPs remotos em relação ao total de linhas
-    percent_remote_ips = float(remote_ips)/float(total_lines) * 100
+    # Compute the percentage of remote IPs relative to the total number of lines
+    percent_remote_ips = float(remote_ips) / float(total_lines) * 100
 
-    # computa percentual de IPs locais em relação ao total de linhas
-    percent_local_ips = float(local_ips)/float(total_lines) * 100
+    # Compute the percentage of local IPs relative to the total number of lines
+    percent_local_ips = float(local_ips) / float(total_lines) * 100
 
-    # o arquivo é válido se houver maior percentual de IPs remotos
+    # The file is valid if there is a higher percentage of remote IPs
     if percent_remote_ips > percent_local_ips:
         return True
 
-    # o arquivo é válido se houver um percentual mínimo de IPs remotos
+    # The file is valid if there is a minimum percentage of remote IPs
     if percent_remote_ips > MIN_ACCEPTABLE_PERCENT_OF_REMOTE_IPS:
         return True
 
     return False
 
 
-def _get_min_max_dates(dates):
-    return datetime(*min(dates)), datetime(*max(dates))
+def validate_date_consistency(results, days_delta=5):
+    """
+    Validates the consistency of dates from the file path and content to determine if they are significantly different.
 
+    Args:
+        results (dict): The results dictionary containing the file path date and content dates.
+        days_delta (int): The number of days to determine the threshold for significant difference.
 
-def _date_is_much_lower(date_object, file_date_object, days_delta):
-    if date_object < file_date_object - timedelta(days=days_delta):
-        return True
-
-
-def _date_is_much_greater(date_object, file_object_date, days_delta):
-    if date_object > file_object_date + timedelta(days=days_delta):
-        return True
-
-
-def _analyse_dates(results, days_delta=5):
+    Returns:
+        bool: True if the dates are not significantly different, False otherwise.
+    """
     file_path_date = results.get('path', {}).get('date', '')
     file_content_dates = results.get('content', {}).get('summary', {}).get('datetimes', {})
     probably_date = results.get('probably_date')
 
-    # se não houver contéudo ou a validação não for executada
+    # If there is no content or the validation was not executed
     if not file_path_date or not file_content_dates:
         return False
 
-    # o arquivo é inválido se não for possível obter uma data a partir do nome do arquivo
+    # The file is invalid if it is not possible to obtain a date from the file name
     try:
         file_date_object = datetime.strptime(file_path_date, '%Y-%m-%d')
     except ValueError:
         return False
 
-    # se a data provável do arquivo é muito menor do que a data indicada no nome do arquivo
-    if _date_is_much_lower(probably_date, file_date_object, days_delta):
+    # If the probable date of the file is significantly earlier than the date indicated in the file name
+    if date_utils.date_is_significantly_earlier(probably_date, file_date_object, days_delta):
         return False
 
-    # se a data provável do arquivo é muito maior do que a data indicada no nome do arquivo
-    if _date_is_much_greater(probably_date, file_date_object, days_delta):
+    # If the probable date of the file is significantly later than the date indicated in the file name
+    if date_utils.date_is_significantly_later(probably_date, file_date_object, days_delta):
         return False
 
     return True
 
 
-def _validate_path(path, sample_size=0.1):
+def validate_path_name(path):
+    """
+    Validates the file path by extracting various attributes.
+
+    Args:
+        path (str): The file path to be validated.
+
+    Returns:
+        dict: A dictionary containing the extracted attributes from the file path.
+    """
     results = {}
 
+    # List of functions to extract attributes from the file path
     for func_impl, func_name in [
-        (_get_date_from_file_name, 'date'),
-        (_get_collection_from_file_name, 'collection'),
-        (_has_file_name_paperboy_format, 'paperboy'),
-        (_get_mimetype_from_file, 'mimetype'),
-        (_get_extension, 'extension'),
+        (file_utils.extract_date_from_path, 'date'),
+        (file_utils.extract_collection_from_path, 'collection'),
+        (file_utils.has_paperboy_format, 'paperboy'),
+        (file_utils.extract_mime_from_path, 'mimetype'),
+        (file_utils.extract_file_extension_from_path, 'extension'),
     ]:
-        results[func_name] = func_impl(path)
+        try:
+            results[func_name] = func_impl(path)
+        except Exception as e:
+            results[func_name] = {'error': str(e)}
 
     return results
 
 
-def _validate_content(path, sample_size=0.1):
+def validate_content(path, sample_size=0.1, min_lines=MIN_NUMBER_OF_SAMPLE_LINES):
+    """
+    Validates the content of a log file by analyzing a sample of its lines.
+
+    Args:
+        path (str): The file path to the log file.
+        sample_size (float): The fraction of lines to sample for analysis (default is 0.1).
+
+    Returns:
+        dict: A dictionary containing the summary of the content analysis.
+
+    Raises:
+        exceptions.TruncatedLogFileError: If the log file is truncated.
+        exceptions.InvalidLogFileMimeError: If the log file has an invalid MIME type.
+        exceptions.LogFileIsEmptyError: If the log file is empty.
+    """
     try:
-        total_lines = _count_lines(path)
-        if total_lines <= MIN_NUMBER_OF_SAMPLE_LINES:
+        total_lines = get_total_lines(path)
+        if total_lines <= min_lines:
             sample_size = 1.0
-        sample_lines = int(total_lines * sample_size)   
-        return {'summary': _get_content_summary(path, total_lines, sample_lines)}
+        sample_lines = int(total_lines * sample_size)
+        return {'summary': analyze_log_content(path, total_lines, sample_lines)}
     except exceptions.TruncatedLogFileError:
-        return {'summary': {'total_lines': {'error': 'Arquivo está truncado'},}}
+        return {'summary': {'total_lines': {'error': 'File is truncated'},}}
     except exceptions.InvalidLogFileMimeError:
-        return {'summary': {'total_lines': {'error': 'Arquivo é inválido'},}}
+        return {'summary': {'total_lines': {'error': 'File is invalid'},}}
     except exceptions.LogFileIsEmptyError:
-        return {'summary': {'total_lines': {'error': 'Arquivo está vazio'},}}
+        return {'summary': {'total_lines': {'error': 'File is empty'},}}
 
 
-def validate(path, validations, sample_size):
+def pipe_validate(path, sample_size=0.1, apply_path_validation=True, apply_content_validation=True):
     results = {}
 
-    for val in validations:
-        val_results = val(path, sample_size)
-        results[val.__name__.replace('_validate_', '')] = val_results
+    if apply_path_validation:
+        results['path'] = validate_path_name(path)
+    
+    if apply_content_validation:
+        results['content'] = validate_content(path, sample_size)
 
-    _compute_results(results)
+    results['is_valid'] = {'ips': validate_ip_distribution(results)}
+
+    results['probably_date'] = get_probably_date(results)
+
+    results['is_valid'].update({'dates': validate_date_consistency(results)})
+
+    results['is_valid'].update({'all': results['is_valid']['ips'] and results['is_valid']['dates']})
 
     return results
-
-
-def _get_date_frequencies(results):
-    file_content_dates = results.get('content', {}).get('summary', {}).get('datetimes', {})
-
-    ymd_to_freq = {}
-    for k, frequency in file_content_dates.items():
-        year, month, day, hour = k
-        if (year, month, day) not in ymd_to_freq:
-            ymd_to_freq[(year, month, day)] = 0
-        ymd_to_freq[(year, month, day)] += frequency
-
-    return ymd_to_freq
-
-
-def _compute_probably_date(results):
-    ymd_to_freq = _get_date_frequencies(results)
-
-    try:
-        ymd, freq = sorted(ymd_to_freq.items(), key=operator.itemgetter(1)).pop()
-        y, m, d = ymd
-        return datetime(y, m, d)
-    except ValueError:
-        return {'error': 'Não foi possível determinar uma data provável'}
-    except IndexError:
-        return {'error': 'Dicionário de datas está vazio'}
-
-
-def _compute_results(results):
-    # verifica se conjunto de ips é válido (há poucos ips locais)
-    results['is_valid'] = {'ips': _analyse_ips_from_content(results)}
-
-    # computa data provável dos dados
-    results['probably_date'] = _compute_probably_date(results)
-
-    # analisa se data provável é muito diferente da data indicada no nome do arquivo
-    results['is_valid'].update({'dates': _analyse_dates(results)})
-
-    # atribui valor da validação resultante
-    results['is_valid'].update(
-        {
-            'all': results['is_valid']['ips'] and results['is_valid']['dates']
-        }
-    )
 
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument('-p', '--path', help='arquivo ou diretório a ser verificado', required=True)
-    parser.add_argument('-s', '--sample_size', help='tamanho da amostra a ser verificada', default=0.1, type=float)
-    parser.add_argument('--check_file_name_only', default=False, help='indica para validar apenas o nome e o caminho do(s) arquivo(s)', action='store_true')
+
+    parser.add_argument('-p', '--path', help='File or directory to be checked', required=True)
+    parser.add_argument('-s', '--sample_size', help='Sample size to be checked', default=0.1, type=float)
+    parser.add_argument('--apply_path_validation', help='Indicates whether to apply path validation', action='store_true')
+    parser.add_argument('--apply_content_validation', help='Indicates whether to apply content validation', action='store_true')
+
     params = parser.parse_args()
 
-    execution_mode = _get_execution_mode(params.path)
-    validations = _get_validation_functions(params.check_file_name_only)
+    # Determine the execution mode based on the provided path
+    execution_mode = get_execution_mode(params.path)
 
-    print(app_msg)
+    print(COMMAND_LINE_SCRIPT_MESSAGE)
     from pprint import pprint
 
     if execution_mode == 'validate-file':
-        results = validate(params.path, validations, params.sample_size)
+        # Validate a single file
+        results = pipe_validate(
+            params.path, 
+            params.sample_size,
+            apply_path_validation=params.apply_path_validation,
+            apply_content_validation=params.apply_content_validation)
         print(params.path)
         pprint(results)
 
     elif execution_mode == 'validate-directory':
-        for root, dirs, files in os.walk(params.path):
+        # Validate all files in a directory
+        for root, _, files in os.walk(params.path):
             for file in files:
                 file_path = os.path.join(root, file)
-                results = validate(file_path, validations)
-                print(params.path)
+                results = pipe_validate(
+                    file_path, 
+                    params.sample_size,
+                    apply_path_validation=params.apply_path_validation,
+                    apply_content_validation=params.apply_content_validation)
+                print(file_path)
                 pprint(results)
-
-
-if __name__ == '__main__':
-    main()
