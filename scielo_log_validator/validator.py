@@ -377,7 +377,28 @@ def validate_content(path, sample_size=0.1, buffer_size=2048, min_lines=MIN_NUMB
         return {'summary': {'total_lines': {'error': 'File is empty'},}}
 
 
-def pipe_validate(path, sample_size=0.1, apply_path_validation=True, apply_content_validation=True):
+def pipeline_validate(path, sample_size=0.1, buffer_size=2048, days_delta=5, apply_path_validation=True, apply_content_validation=True):
+    """
+    Validates a log file by applying various validation checks.
+    
+    Args:
+        path (str): The file path to the log file to be validated.
+        sample_size (float, optional): The percentage of the log file to sample for content validation. Defaults to 0.1.
+        buffer_size (int, optional): The buffer size for file type checking. Defaults to 2048.
+        days_delta (int, optional): The number of days to determine the threshold for significant date difference. Defaults to 5.
+        apply_path_validation (bool, optional): Whether to apply path validation. Defaults to True.
+        apply_content_validation (bool, optional): Whether to apply content validation. Defaults to True.
+    
+    Returns:
+        dict: A dictionary containing the results of the validation checks. The keys include:
+            - 'path': The result of the path validation (if applied).
+            - 'content': The result of the content validation (if applied).
+            - 'is_valid': A dictionary containing:
+                - 'ips': The result of the IP distribution validation.
+                - 'dates': The result of the date consistency validation.
+                - 'all': A boolean indicating if both IP and date validations passed.
+            - 'probably_date': The probable date extracted from the log file.
+    """
     results = {}
 
     if apply_path_validation:
