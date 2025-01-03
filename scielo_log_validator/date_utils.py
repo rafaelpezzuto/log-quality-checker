@@ -27,3 +27,20 @@ def clean_date(date_str):
     else:
         raise ValueError(f"Invalid date format: {date_str}")
    
+
+def extract_min_max_dates(dates):
+    """
+    Given a list of date tuples, returns the minimum and maximum dates as datetime objects.
+
+    Args:
+        dates (list of tuples): A list where each element is a tuple representing a date (year, month, day, ...).
+
+    Returns:
+        tuple: A tuple containing two datetime objects, the minimum and maximum dates.
+
+    Example:
+        dates = [(2021, 5, 17), (2020, 12, 25), (2022, 1, 1)]
+        min_date, max_date = get_min_max_dates(dates)
+    """
+    return datetime(*min(dates)), datetime(*max(dates))
+

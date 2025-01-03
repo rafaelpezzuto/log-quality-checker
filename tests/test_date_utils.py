@@ -23,3 +23,10 @@ class TestDateUtils(unittest.TestCase):
     def test_clean_date_raises_exception(self):
         with self.assertRaises(ValueError):
             date_utils.clean_date('invalid_date')
+
+    def test_extract_min_max_dates(self):
+        dates = [(2021, 5, 17), (2020, 12, 25), (2022, 1, 1)]
+        min_date, max_date = date_utils.extract_min_max_dates(dates)
+        self.assertEqual(min_date, date_utils.datetime(2020, 12, 25))
+        self.assertEqual(max_date, date_utils.datetime(2022, 1, 1))
+
