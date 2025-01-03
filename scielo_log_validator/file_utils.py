@@ -45,3 +45,24 @@ def open_file(path, mime_handlers=DEFAULT_MIME_HANDLERS):
 
     return mime_handlers[file_mime](path, 'rb' if 'application' in file_mime else 'r')
 
+
+def extract_mime_from_path(path, buffer_size=2048):
+    """
+    Determines the MIME type of a file based on its content.
+
+    Args:
+        path (str): The file path to read and determine the MIME type.
+        buffer_size (int, optional): The number of bytes to read from the file for MIME type detection. Defaults to 2048.
+
+    Returns:
+        str: The MIME type of the file.
+
+    Raises:
+        FileNotFoundError: If the file at the given path does not exist.
+        IOError: If there is an error reading the file.
+    """
+    mime = magic.Magic(mime=True)
+    with open(path, 'rb') as fin:
+        magic_code = mime.from_buffer(fin.read(buffer_size))
+        return magic_code
+

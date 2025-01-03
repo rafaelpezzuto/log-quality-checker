@@ -14,3 +14,7 @@ class TestFileUtils(unittest.TestCase):
         with file_utils.open_file(self.log_file) as f:
             self.assertTrue(f.read())
     
+    def test_extract_mimetype_from_path_is_gz(self):
+        gzip_mimes = ['application/gzip', 'application/x-gzip']
+        mimetype = file_utils.extract_mime_from_path(self.log_file)
+        self.assertIn(mimetype, gzip_mimes)
