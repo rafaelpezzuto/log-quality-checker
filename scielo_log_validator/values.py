@@ -24,7 +24,7 @@ COLLECTION_FILE_NAME_IDENTIFIERS = {
     '_scielo.preprints': 'pre',
     '_scielo.pepsic': 'psi',
     '_scielo.revenf': 'rev',
-    '_scielo.ss': 'ss',
+    '_scielo.ss': 'sss',
 }
 
 PATTERN_Y_M_D = r'\d{4}-\d{2}-\d{2}'
