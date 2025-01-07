@@ -114,6 +114,10 @@ class TestValidator(unittest.TestCase):
     def test_pipeline_validate_successfully_runs(self):
         obtained_results = validator.pipeline_validate(self.log_file_wi_1_invalid_content)
         expected_results = {
+            'mode': {
+                'path_validation': True,
+                'content_validation': True,
+            },
             'path': {
                 'date': '2024-02-20', 
                 'collection': 'wid', 
@@ -169,6 +173,10 @@ class TestValidator(unittest.TestCase):
         )
 
         expected_results = {
+            'mode': {
+                'path_validation': True,
+                'content_validation': False,
+            },
             'path': {
                 'date': '2024-02-20', 
                 'collection': 'wid', 
@@ -176,12 +184,8 @@ class TestValidator(unittest.TestCase):
                 'mimetype': 'application/gzip', 
                 'extension': '.gz'
             }, 
-            'is_valid': {
-                'ips': False, 'dates': False, 'all': False}, 
-                'probably_date': {'error': 'Date dictionary is empty'}
-            }
+        }
         self.assertDictEqual(obtained_results, expected_results)
-        self.assertFalse(obtained_results['is_valid']['all'])
 
     def test_pipeline_validate_only_content(self):
         obtained_results = validator.pipeline_validate(
@@ -191,6 +195,10 @@ class TestValidator(unittest.TestCase):
         )
 
         expected_results = {
+            'mode': {
+                'path_validation': False,
+                'content_validation': True,
+            },
             'is_valid': {'ips': False, 'dates': False, 'all': False}, 
             'probably_date': datetime.datetime(2024, 2, 21, 0, 0),
             'content': {
@@ -271,6 +279,10 @@ class TestValidator(unittest.TestCase):
         )
 
         expected = {
+            'mode': {
+                'path_validation': True,
+                'content_validation': True,
+            },
             'path': {
                 'date': '2024-05-15',
                 'collection': 'chl',
@@ -307,6 +319,10 @@ class TestValidator(unittest.TestCase):
             apply_content_validation=True,
         )
         expected = {
+            'mode': {
+                'path_validation': True,
+                'content_validation': True,
+            },
             'path': {
                 'date': '2024-09-15',
                 'collection': 'chl',

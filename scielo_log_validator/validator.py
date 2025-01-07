@@ -436,7 +436,7 @@ def pipeline_validate(path, sample_size=0.1, buffer_size=2048, days_delta=5, app
                 - 'all': A boolean indicating if both IP and date validations passed.
             - 'probably_date': The probable date extracted from the log file.
     """
-    results = {}
+    results = {'mode': {'path_validation': apply_path_validation, 'content_validation': apply_content_validation}}
 
     if apply_path_validation:
         results['path'] = validate_path_name(path)
