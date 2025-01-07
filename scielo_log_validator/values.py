@@ -33,6 +33,31 @@ PATTERN_YMD = r'\d{4}\d{2}\d{2}'
 
 PATTERN_PAPERBOY = r'^\d{4}-\d{2}-\d{2}[\w|\.]*\.log\.gz$'
 
-PATTERN_IP_DATETIME_OTHERS = r'^([\w|\W]* |)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - - \[(.*)\] (\".*\")(.*)$'
+# https://github.com/matomo-org/matomo-log-analytics/blob/4.x-dev/import_logs.py
+PATTERN_COMMON_LOG_FORMAT = (
+    r'(?P<ip>[\w*.:-]+)\s+\S+\s+(?P<userid>\S+)\s+\[(?P<date>.*?)\s+(?P<timezone>.*?)\]\s+'
+    r'"(?P<method>\S+)\s+(?P<path>.*?)\s+\S+"\s+(?P<status>\d+)\s+(?P<length>\S+)'
+)
 
-PATTERN_IP_DATETIME_RESOURCE_STATUS_LENGHT_REFERRER_EQUIPMENT = r'^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - - \[(.*)\] \"GET (.*) .*\" (\d{3}) (\d*) \"(.*)\" \"(.*)\"$'
+PATTERN_COMMON_LOG_FORMAT_WITH_IP_LIST = (
+    r'(?P<ip>[\w*.:-]+)\s(?P<ip_list>[\w*.:,\s-]+)\s+(?P<userid>\S+)\s+\[(?P<date>.*?)\s+(?P<timezone>.*?)\]\s+'
+    r'"(?P<method>\S+)\s+(?P<path>.*?)\s+\S+\"\s+(?P<status>\d+)\s+(?P<length>\S+)'
+)
+
+# https://github.com/matomo-org/matomo-log-analytics/blob/4.x-dev/import_logs.py
+PATTERN_NCSA_EXTENDED_LOG_FORMAT = (
+    PATTERN_COMMON_LOG_FORMAT + r'\s+"(?P<referrer>.*?)"\s+"(?P<user_agent>.*?)"'
+)
+
+PATTERN_NCSA_EXTENDED_LOG_FORMAT_WITH_IP_LIST = (
+    PATTERN_COMMON_LOG_FORMAT_WITH_IP_LIST + r'\s+"(?P<referrer>.*?)"\s+"(?P<user_agent>.*?)"'
+)
+
+# Pattern designed to capture rows that begin with the domain name
+PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN = (
+    r'(?P<domain>.*?)\s' + PATTERN_COMMON_LOG_FORMAT + r'\s+"(?P<referrer>.*?)"\s+"(?P<user_agent>.*?)"'
+)
+
+PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN_WITH_IP_LIST = (
+    r'(?P<domain>.*?)\s' + PATTERN_COMMON_LOG_FORMAT_WITH_IP_LIST + r'\s+"(?P<referrer>.*?)"\s+"(?P<user_agent>.*?)"'
+)
