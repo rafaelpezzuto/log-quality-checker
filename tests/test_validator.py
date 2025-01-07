@@ -7,17 +7,20 @@ from scielo_log_validator import validator
 class TestValidator(unittest.TestCase):
 
     def setUp(self):
-        self.log_directory = 'tests/fixtures/logs/scielo.wi/'
-        self.log_file = 'tests/fixtures/logs/scielo.scl/2022-03-05_scielo-br.log.gz'
-        self.log_file_invalid_content = 'tests/fixtures/logs/scielo.wi/2024-02-20_caribbean.scielo.org.1.log.gz'
-        self.log_file_invalid_name = 'tests/fixtures/logs/scielo.wi/invalid_file_name.log.gz'
+        self.maxDiff = None
+        self.log_directory_wi = 'tests/fixtures/logs/scielo.wi/'
+        self.log_file_br_1 = 'tests/fixtures/logs/scielo.scl/2022-03-05_scielo-br.log.gz'
+        self.log_file_cl_1_default_pattern = 'tests/fixtures/logs/scielo.cl/2024-05-15_scielo.cl.log.gz'
+        self.log_file_cl_1_custom_pattern = 'tests/fixtures/logs/scielo.cl/2024-09-15_scielo.cl.log.gz'
+        self.log_file_wi_1_invalid_content = 'tests/fixtures/logs/scielo.wi/2024-02-20_caribbean.scielo.org.1.log.gz'
+        self.log_file_wi_2_invalid_file_name = 'tests/fixtures/logs/scielo.wi/invalid_file_name.log.gz'
 
     def test_get_execution_mode_is_file(self):
-        exec_mode = validator.get_execution_mode(self.log_file_invalid_content)
+        exec_mode = validator.get_execution_mode(self.log_file_wi_1_invalid_content)
         self.assertEqual(exec_mode, 'validate-file')
 
     def test_get_execution_mode_is_directory(self):
-        exec_mode = validator.get_execution_mode(self.log_directory)
+        exec_mode = validator.get_execution_mode(self.log_directory_wi)
         self.assertEqual(exec_mode, 'validate-directory')
 
     def test_get_execution_mode_is_invalid(self):
@@ -31,7 +34,7 @@ class TestValidator(unittest.TestCase):
         self.assertEqual((y, m, d, h), (2023, 3, 12, 14))
 
     def test_count_lines(self):
-        obtained_nlines = validator.get_total_lines(self.log_file_invalid_content)
+        obtained_nlines = validator.get_total_lines(self.log_file_wi_1_invalid_content)
         expected_nlines = 7160
         self.assertEqual(obtained_nlines, expected_nlines)
 
@@ -96,7 +99,7 @@ class TestValidator(unittest.TestCase):
         self.assertFalse(validator.validate_date_consistency(results))
 
     def test_validate_path(self):
-        path = self.log_file_invalid_name
+        path = self.log_file_wi_2_invalid_file_name
         results = validator.validate_path_name(path)
         self.assertIn('date', results)
         self.assertIn('collection', results)
@@ -105,11 +108,11 @@ class TestValidator(unittest.TestCase):
         self.assertIn('extension', results)
 
     def test_validate_content(self):
-        results = validator.validate_content(self.log_file_invalid_content)
+        results = validator.validate_content(self.log_file_wi_1_invalid_content)
         self.assertIn('summary', results)
 
     def test_pipeline_validate_successfully_runs(self):
-        obtained_results = validator.pipeline_validate(self.log_file_invalid_content)
+        obtained_results = validator.pipeline_validate(self.log_file_wi_1_invalid_content)
         expected_results = {
             'path': {
                 'date': '2024-02-20', 
