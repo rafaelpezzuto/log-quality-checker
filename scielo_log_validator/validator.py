@@ -443,14 +443,10 @@ def pipeline_validate(path, sample_size=0.1, buffer_size=2048, days_delta=5, app
     
     if apply_content_validation:
         results['content'] = validate_content(path=path, sample_size=sample_size, buffer_size=buffer_size)
-
-    results['is_valid'] = {'ips': validate_ip_distribution(results)}
-
-    results['probably_date'] = get_probably_date(results)
-
-    results['is_valid'].update({'dates': validate_date_consistency(results, days_delta=days_delta)})
-
-    results['is_valid'].update({'all': results['is_valid']['ips'] and results['is_valid']['dates']})
+        results['is_valid'] = {'ips': validate_ip_distribution(results)}
+        results['probably_date'] = get_probably_date(results)
+        results['is_valid'].update({'dates': validate_date_consistency(results, days_delta=days_delta)})
+        results['is_valid'].update({'all': results['is_valid']['ips'] and results['is_valid']['dates']})
 
     return results
 
