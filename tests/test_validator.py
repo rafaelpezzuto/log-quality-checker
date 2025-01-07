@@ -262,3 +262,76 @@ class TestValidator(unittest.TestCase):
             }
         }
         self.assertEqual(validator.get_probably_date(results), validator.datetime(2023, 1, 1))
+
+    def test_line_with_default_pattern(self):
+        results = validator.pipeline_validate(
+            path=self.log_file_cl_1_default_pattern,
+            apply_path_validation=True,
+            apply_content_validation=True,
+        )
+
+        expected = {
+            'path': {
+                'date': '2024-05-15',
+                'collection': 'chl',
+                'paperboy': True,
+                'mimetype': 'application/gzip',
+                'extension': '.gz'
+            },
+            'content': {
+                'summary': {
+                    'ips': {'local': 0, 'remote': 100, 'unknown': 0},
+                    'datetimes': {
+                        (2024, 5, 15, 0): 30,
+                        (2024, 5, 16, 0): 70
+                    },
+                    'invalid_lines': 0,
+                    'total_lines': 100
+                }
+            },
+            'is_valid': {
+                'ips': True,
+                'dates': True,
+                'all': True
+            },
+            'probably_date': datetime.datetime(2024, 5, 16, 0, 0)
+        }
+
+        self.assertDictEqual(results, expected)
+
+    def test_line_with_custom_pattern(self):
+        results = validator.pipeline_validate(
+            sample_size=1,
+            path=self.log_file_cl_1_custom_pattern,
+            apply_path_validation=True,
+            apply_content_validation=True,
+        )
+        expected = {
+            'path': {
+                'date': '2024-09-15',
+                'collection': 'chl',
+                'paperboy': True,
+                'mimetype': 'application/gzip',
+                'extension': '.gz'
+            },
+            'content': {
+                'summary': {
+                    'ips': {'local': 0, 'remote': 95, 'unknown': 6},
+                    'datetimes': {
+                        (2024, 9, 15, 0): 71,
+                        (2024, 9, 16, 0): 24
+                    },
+                    'invalid_lines': 6,
+                    'total_lines': 101
+                }
+            },
+            'is_valid': {
+                'ips': True,
+                'dates': True,
+                'all': True
+            },
+            'probably_date': datetime.datetime(2024, 9, 15, 0, 0)
+        }
+
+        self.assertDictEqual(results, expected)
+    
