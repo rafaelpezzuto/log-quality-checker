@@ -51,19 +51,26 @@ def get_execution_mode(path):
 
 def get_ip_type(ip):
     """
-    Classifies an IP address as local or remote.
-
+    Determine the type of an IP address.
     Args:
-        ip (str): The IP address to be checked.
-
+        ip (str): The IP address to be evaluated.
     Returns:
-        str: 'local' if the IP address is local, 'remote' if the IP address is global, 'unknown' otherwise.
+        str: The type of the IP address, which can be one of the following:
+            - 'remote': if the IP address is a global address.
+            - 'local': if the IP address is private, loopback, or link-local.
+            - 'unknown': if the IP address is invalid or its type cannot be determined.
     """
-    ipa = ip_address(ip)
+
+    try:
+        ipa = ip_address(ip)
+    except ValueError:
+        return 'unknown'
+
     if ipa.is_global:
         return 'remote'
     elif ipa.is_private or ipa.is_loopback or ipa.is_link_local:
         return 'local'
+
     return 'unknown'
 
 
