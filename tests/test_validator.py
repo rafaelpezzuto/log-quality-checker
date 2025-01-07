@@ -11,7 +11,8 @@ class TestValidator(unittest.TestCase):
         self.log_directory_wi = 'tests/fixtures/logs/scielo.wi/'
         self.log_file_br_1 = 'tests/fixtures/logs/scielo.scl/2022-03-05_scielo-br.log.gz'
         self.log_file_cl_1_default_pattern = 'tests/fixtures/logs/scielo.cl/2024-05-15_scielo.cl.log.gz'
-        self.log_file_cl_1_custom_pattern = 'tests/fixtures/logs/scielo.cl/2024-09-15_scielo.cl.log.gz'
+        self.log_file_cl_2_list_pattern = 'tests/fixtures/logs/scielo.cl/2024-09-15_scielo.cl.log.gz'
+        self.log_file_cl_3_ipv6_pattern = 'tests/fixtures/logs/scielo.cl/2024-12-10_scielo.cl.log.gz'
         self.log_file_wi_1_invalid_content = 'tests/fixtures/logs/scielo.wi/2024-02-20_caribbean.scielo.org.1.log.gz'
         self.log_file_wi_2_invalid_file_name = 'tests/fixtures/logs/scielo.wi/invalid_file_name.log.gz'
 
@@ -311,10 +312,10 @@ class TestValidator(unittest.TestCase):
 
         self.assertDictEqual(results, expected)
 
-    def test_line_with_custom_pattern(self):
+    def test_line_with_list_pattern(self):
         results = validator.pipeline_validate(
             sample_size=1,
-            path=self.log_file_cl_1_custom_pattern,
+            path=self.log_file_cl_2_list_pattern,
             apply_path_validation=True,
             apply_content_validation=True,
         )
@@ -351,3 +352,42 @@ class TestValidator(unittest.TestCase):
 
         self.assertDictEqual(results, expected)
     
+    def test_line_with_ipv6_pattern(self):
+        results = validator.pipeline_validate(
+            sample_size=1,
+            path=self.log_file_cl_3_ipv6_pattern,
+            apply_path_validation=True,
+            apply_content_validation=True,
+        )
+        expected = {
+            'mode': {
+                'path_validation': True,
+                'content_validation': True,
+            },
+            'path': {
+                'date': '2024-12-10',
+                'collection': 'chl',
+                'paperboy': True,
+                'mimetype': 'application/gzip',
+                'extension': '.gz'
+            },
+            'content': {
+                'summary': {
+                    'ips': {'local': 0, 'remote': 29, 'unknown': 2},
+                    'datetimes': {
+                        (2024, 12, 10, 0): 19,
+                        (2024, 12, 11, 0): 10
+                    },
+                    'invalid_lines': 2,
+                    'total_lines': 31
+                }
+            },
+            'is_valid': {
+                'ips': True,
+                'dates': True,
+                'all': True
+            },
+            'probably_date': datetime.datetime(2024, 12, 10, 0, 0)
+        }
+
+        self.assertDictEqual(results, expected)
