@@ -188,7 +188,7 @@ def analyze_log_content(path, total_lines, sample_lines):
     invalid_lines = 0
 
     try:
-        eval_lines = set(range(0, total_lines, int(total_lines/sample_lines)))
+        eval_lines = set(range(0, total_lines + 1, int(total_lines/sample_lines)))
     except ZeroDivisionError:
         raise exceptions.LogFileIsEmptyError('Arquivo %s está vazio' % path)
 
