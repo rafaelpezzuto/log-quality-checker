@@ -458,8 +458,8 @@ def main():
     parser.add_argument('-s', '--sample_size', help='Sample size to be checked (must be between 0 and 1)', default=0.1, type=float)
     parser.add_argument('-b', '--buffer_size', help='Buffer size for file type checking', default=2048, type=int)
     parser.add_argument('-d', '--days_delta', help='Number of days to determine the threshold for significant date difference', default=5, type=int)
-    parser.add_argument('--apply_path_validation', help='Indicates whether to apply path validation', action='store_true')
-    parser.add_argument('--apply_content_validation', help='Indicates whether to apply content validation', action='store_true')
+    parser.add_argument('--no_path_validation', help='Deactivate path validation', action='store_false', dest='apply_path_validation', default=True)
+    parser.add_argument('--no_content_validation', help='Deactivate content validation', action='store_false', dest='apply_content_validation', default=True)
 
     params = parser.parse_args()
 
