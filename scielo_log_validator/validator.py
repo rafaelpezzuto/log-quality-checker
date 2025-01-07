@@ -203,14 +203,44 @@ def analyze_log_content(path, total_lines, sample_lines):
             line_counter += 1
 
             if line_counter in eval_lines:
-                match = re.search(values.PATTERN_IP_DATETIME_OTHERS, decoded_line)
+                patterns = [
+                    values.PATTERN_NCSA_EXTENDED_LOG_FORMAT,
+                    values.PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN,
+                    values.PATTERN_NCSA_EXTENDED_LOG_FORMAT_WITH_IP_LIST,
+                    values.PATTERN_NCSA_EXTENDED_LOG_FORMAT_DOMAIN_WITH_IP_LIST,
+                ]
 
-                if match and len(match.groups()) == 5:
-                    ip_value = match.group(2)
-                    ip_type = get_ip_type(ip_value)
-                    ips[ip_type] += 1
+                match = None
+                ip_type = 'unknown'
 
-                    matched_datetime = match.group(3)
+                for pattern in patterns:
+                    match = re.match(pattern, decoded_line)
+
+                    # Match the pattern and extract the IP address
+                    if match:
+                        content = match.groupdict()
+                        
+                        ip_value = content.get('ip')
+                        ip_type = get_ip_type(ip_value)
+
+                        if ip_type != 'unknown':
+                            break
+                        else:
+                            for i in content.get('ip_list', '').split(','):
+                                ip_type = get_ip_type(i.strip())
+                                if ip_type != 'unknown':
+                                    break
+
+                            if ip_type != 'unknown':
+                                break
+
+                ips[ip_type] += 1
+
+                # Match the date pattern and extract the datetime
+                if match:
+                    content = match.groupdict()
+
+                    matched_datetime = content.get('date', '')
                     try:
                         year, month, day, hour = get_year_month_day_hour_from_date_str(matched_datetime)
 
