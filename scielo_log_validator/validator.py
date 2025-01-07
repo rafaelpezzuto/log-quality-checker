@@ -183,7 +183,7 @@ def analyze_log_content(path, total_lines, sample_lines):
     Raises:
         exceptions.LogFileIsEmptyError: If the log file is empty.
     """
-    ips = {'local': 0, 'remote': 0}
+    ips = {'local': 0, 'remote': 0, 'unknown': 0}
     datetimes = {}
     invalid_lines = 0
 
