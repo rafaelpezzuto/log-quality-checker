@@ -35,12 +35,12 @@ PATTERN_PAPERBOY = r'^\d{4}-\d{2}-\d{2}[\w|\.]*\.log\.gz$'
 
 # https://github.com/matomo-org/matomo-log-analytics/blob/4.x-dev/import_logs.py
 PATTERN_COMMON_LOG_FORMAT = (
-    r'(?P<ip>[\w*.:-]+)\s+\S+\s+(?P<userid>\S+)\s+\[(?P<date>.*?)\s+(?P<timezone>.*?)\]\s+'
+    r'(?P<ip>[\w*.:-]+)\s+\S+\s+(?P<userid>\S+)\s+\[(?P<date>.*[^\-\+\s])\s*(?P<timezone>[+-]?\d{4,6})\]\s+'
     r'"(?P<method>\S+)\s+(?P<path>.*?)\s+\S+"\s+(?P<status>\d+)\s+(?P<length>\S+)'
 )
 
 PATTERN_COMMON_LOG_FORMAT_WITH_IP_LIST = (
-    r'(?P<ip>[\w*.:-]+)\s(?P<ip_list>[\w*.:,\s-]+)\s+(?P<userid>\S+)\s+\[(?P<date>.*?)\s+(?P<timezone>.*?)\]\s+'
+    r'(?P<ip>[\w*.:-]+)\s(?P<ip_list>[\w*.:,\s-]+)\s+(?P<userid>\S+)\s+\[(?P<date>.*[^\-\+\s])\s*(?P<timezone>[+-]?\d{4,6})\]\s+'
     r'"(?P<method>\S+)\s+(?P<path>.*?)\s+\S+\"\s+(?P<status>\d+)\s+(?P<length>\S+)'
 )
 
