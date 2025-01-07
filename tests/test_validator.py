@@ -147,9 +147,9 @@ class TestValidator(unittest.TestCase):
                         (2024, 2, 21, 20): 37, 
                         (2024, 2, 21, 21): 33, 
                         (2024, 2, 21, 22): 33, 
-                        (2024, 2, 21, 23): 36,
+                        (2024, 2, 21, 23): 37,
                     },
-                    'ips': {'local': 700, 'remote': 15}, 
+                    'ips': {'local': 701, 'remote': 15, 'unknown': 0}, 
                     'invalid_lines': 0,
                     'total_lines': 7160,
                 }
@@ -163,7 +163,7 @@ class TestValidator(unittest.TestCase):
 
     def test_pipeline_validate_only_path(self):
         obtained_results = validator.pipeline_validate(
-            path=self.log_file_invalid_content, 
+            path=self.log_file_wi_1_invalid_content, 
             apply_path_validation=True, 
             apply_content_validation=False
         )
@@ -185,7 +185,7 @@ class TestValidator(unittest.TestCase):
 
     def test_pipeline_validate_only_content(self):
         obtained_results = validator.pipeline_validate(
-            path=self.log_file_invalid_content, 
+            path=self.log_file_wi_1_invalid_content, 
             apply_path_validation=False, 
             apply_content_validation=True
         )
@@ -219,9 +219,9 @@ class TestValidator(unittest.TestCase):
                         (2024, 2, 21, 20): 37, 
                         (2024, 2, 21, 21): 33, 
                         (2024, 2, 21, 22): 33, 
-                        (2024, 2, 21, 23): 36,
+                        (2024, 2, 21, 23): 37,
                     },
-                    'ips': {'local': 700, 'remote': 15}, 
+                    'ips': {'local': 701, 'remote': 15, 'unknown': 0}, 
                     'invalid_lines': 0,
                     'total_lines': 7160,
                 }
@@ -231,15 +231,15 @@ class TestValidator(unittest.TestCase):
         self.assertFalse(obtained_results['is_valid']['all'])
 
     def test_pipeline_validate_with_sample_size_zero(self):
-        obtained_results = validator.pipeline_validate(self.log_file, sample_size=0)
+        obtained_results = validator.pipeline_validate(self.log_file_br_1, sample_size=0)
         self.assertTrue(obtained_results['is_valid']['all'])
 
     def test_pipeline_validate_with_sample_size_greater_than_one(self):
-        obtained_results = validator.pipeline_validate(self.log_file_invalid_content, sample_size=100)
+        obtained_results = validator.pipeline_validate(self.log_file_wi_1_invalid_content, sample_size=100)
         self.assertTrue(obtained_results['is_valid']['dates'])
 
     def test_pipeline_validate_with_directory(self):
-        obtained_results = validator.pipeline_validate(self.log_file_invalid_content, sample_size=100)
+        obtained_results = validator.pipeline_validate(self.log_file_wi_1_invalid_content, sample_size=100)
         self.assertTrue(obtained_results['is_valid']['dates'])
 
     def test_get_date_frequencies(self):
